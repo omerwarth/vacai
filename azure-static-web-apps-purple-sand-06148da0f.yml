@@ -1,32 +1,43 @@
 name: Azure Static Web Apps CI/CD
 
-pr:
-  branches:
-    include:
-      - main
 trigger:
   branches:
     include:
       - main
 
-jobs:
-- job: build_and_deploy_job
-  displayName: Build and Deploy Job
-  condition: or(eq(variables['Build.Reason'], 'Manual'),or(eq(variables['Build.Reason'], 'PullRequest'),eq(variables['Build.Reason'], 'IndividualCI')))
-  pool:
-    vmImage: ubuntu-latest
-  variables:
-  - group: Azure-Static-Web-Apps-purple-sand-06148da0f-variable-group
-  steps:
-  - checkout: self
-    submodules: true
-  - task: AzureStaticWebApp@0
-    inputs:
-      azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN_PURPLE_SAND_06148DA0F)
-###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
-# For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-      app_location: "/" # App source code path
-      api_location: "api" # Api source code path - optional
-      output_location: "build" # Built app content directory - optional
-###### End of Repository/Build Configurations ######
+pr:
+  branches:
+    include:
+      - main
 
+stages:
+- stage: BuildAndDeploy
+  displayName: Build and Deploy Stage
+  jobs:
+  - job: BuildAndDeployJob
+    displayName: Build and Deploy Job
+    pool:
+      vmImage: ubuntu-latest
+    variables:
+    - group: Azure-Static-Web-Apps-purple-sand-06148da0f-variable-group
+
+    steps:
+    - checkout: self
+      submodules: true
+
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '18.x'
+      displayName: 'Use Node.js 18.x'
+
+    - script: |
+        npm install
+        npm run build
+      displayName: 'Install and Build Next.js app'
+
+    - task: AzureStaticWebApp@0
+      inputs:
+        azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN_PURPLE_SAND_06148DA0F)
+        app_location: "/"
+        api_location: ""     # set this if you have an /api folder
+        output_location: ""  # leave empty for Next.js SSR
