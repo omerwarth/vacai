@@ -20,7 +20,8 @@ export default function AuthPage() {
     setMessage('');
 
     try {
-      const baseUrl = 'http://localhost:7071';
+      // Use relative paths for Azure Static Web Apps, localhost for development
+      const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:7071' : '';
       const endpoint = isSignUp ? `${baseUrl}/api/signup` : `${baseUrl}/api/signin`;
       const response = await fetch(endpoint, {
         method: 'POST',
