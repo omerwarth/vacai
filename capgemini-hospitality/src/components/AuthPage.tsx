@@ -2,15 +2,6 @@
 
 import { useState } from 'react';
 
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  password?: string;
-  createdAt?: string;
-}
-
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -29,7 +20,8 @@ export default function AuthPage() {
     setMessage('');
 
     try {
-      const endpoint = isSignUp ? '/api/auth/signup' : '/api/auth/signin';
+      const baseUrl = 'http://localhost:7071';
+      const endpoint = isSignUp ? `${baseUrl}/api/signup` : `${baseUrl}/api/signin`;
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -38,18 +30,30 @@ export default function AuthPage() {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      const contentType = response.headers.get('Content-Type');
+      console.log('Content-Type:', contentType);
       
-      if (response.ok) {
-        setMessage(data.message || (isSignUp ? 'Account created successfully!' : 'Signed in successfully!'));
-        if (isSignUp) {
-          setIsSignUp(false); // Switch to sign in after successful signup
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+        if (response.ok) {
+          setMessage(data.message || (isSignUp ? 'Account created successfully!' : 'Signed in successfully!'));
+          if (isSignUp) {
+            setIsSignUp(false); // Switch to sign in after successful signup
+          }
+          setFormData({ email: '', password: '', firstName: '', lastName: '' });
+        } else {
+          setMessage(data.error || 'An error occurred');
         }
-        setFormData({ email: '', password: '', firstName: '', lastName: '' });
       } else {
-        setMessage(data.error || 'An error occurred');
+        // Log the raw response body for debugging
+        const responseText = await response.text();
+        console.log('Raw response body:', responseText);
+        setMessage('Unexpected response format from server');
       }
     } catch (error) {
+      console.error('Fetch error:', error);
       setMessage('Failed to connect to server');
     }
     setLoading(false);

@@ -1,5 +1,10 @@
 import { CosmosClient, Database, Container } from '@azure/cosmos';
 
+interface CosmosItem {
+  id: string;
+  [key: string]: unknown;
+}
+
 class CosmosDBClient {
   private client: CosmosClient;
   private database: Database | null = null;
@@ -40,36 +45,36 @@ class CosmosDBClient {
     return this.container;
   }
 
-  async createItem(item: any): Promise<any> {
+  async createItem(item: CosmosItem): Promise<CosmosItem> {
     const container = await this.getContainer();
     const { resource } = await container.items.create(item);
-    return resource;
+    return resource as CosmosItem;
   }
 
-  async getItem(id: string): Promise<any> {
+  async getItem(id: string): Promise<CosmosItem | null> {
     const container = await this.getContainer();
     try {
       const { resource } = await container.item(id, id).read();
-      return resource;
-    } catch (error: any) {
-      if (error.code === 404) {
+      return resource as CosmosItem;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 404) {
         return null;
       }
       throw error;
     }
   }
 
-  async getItems(query?: string): Promise<any[]> {
+  async getItems(query?: string): Promise<CosmosItem[]> {
     const container = await this.getContainer();
     const querySpec = query ? { query } : { query: 'SELECT * FROM c' };
     const { resources } = await container.items.query(querySpec).fetchAll();
-    return resources;
+    return resources as CosmosItem[];
   }
 
-  async updateItem(id: string, item: any): Promise<any> {
+  async updateItem(id: string, item: CosmosItem): Promise<CosmosItem> {
     const container = await this.getContainer();
     const { resource } = await container.item(id, id).replace(item);
-    return resource;
+    return resource as CosmosItem;
   }
 
   async deleteItem(id: string): Promise<void> {

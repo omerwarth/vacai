@@ -1,13 +1,14 @@
-# Capgemini Hospitality - Azure Cosmos DB Integration
+# Capgemini Hospitality - Azure Cosmos DB with Azure Functions
 
-This Next.js application demonstrates how to integrate Azure Cosmos DB for user authentication functionality.
+This Next.js application demonstrates how to integrate Azure Cosmos DB for user authentication functionality using Azure Functions for the backend API.
 
 ## Features
 
 - **Azure Cosmos DB Integration**: Connected to Azure Cosmos DB using the official SDK
+- **Azure Functions API**: Serverless backend functions for authentication
 - **User Authentication**: Sign up and sign in functionality
+- **Static Web App**: Optimized for Azure Static Web Apps deployment
 - **Modern UI**: Responsive design with Tailwind CSS
-- **API Routes**: RESTful API endpoints for authentication and user management
 
 ## Setup Instructions
 
@@ -20,34 +21,67 @@ This Next.js application demonstrates how to integrate Azure Cosmos DB for user 
 
 ### 2. Environment Configuration
 
-Update the `.env.local` file with your Azure Cosmos DB credentials:
+Update the `.env.local` file for the Next.js app (frontend environment variables):
 
 ```env
+# These are not used in production since we use Azure Functions
 COSMOS_DB_ENDPOINT=https://your-cosmos-db-account.documents.azure.com:443/
 COSMOS_DB_KEY=your-primary-key-here
 COSMOS_DB_DATABASE_NAME=capgemini-hospitality
 COSMOS_DB_CONTAINER_NAME=users
 ```
 
+Update the `api/local.settings.json` file for local Azure Functions development:
+
+```json
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "COSMOS_DB_ENDPOINT": "https://your-cosmos-db-account.documents.azure.com:443/",
+    "COSMOS_DB_KEY": "your-primary-key-here",
+    "COSMOS_DB_DATABASE_NAME": "capgemini-hospitality",
+    "COSMOS_DB_CONTAINER_NAME": "users"
+  }
+}
+```
+
 ### 3. Install Dependencies
 
+Install Next.js dependencies:
 ```bash
 npm install
 ```
 
-### 4. Run the Application
-
+Install Azure Functions dependencies:
 ```bash
-npm run dev
+cd api
+npm install
+cd ..
 ```
 
-The application will be available at `http://localhost:3000`
+### 4. Run the Application
 
-## API Endpoints
+For local development, you need to run both the Next.js app and Azure Functions:
+
+```bash
+# Terminal 1 - Run Next.js app
+npm run dev
+
+# Terminal 2 - Run Azure Functions
+cd api
+npm start
+```
+
+The Next.js application will be available at `http://localhost:3000`
+The Azure Functions will be available at `http://localhost:7071`
+
+## API Endpoints (Azure Functions)
 
 ### Authentication
-- `POST /api/auth/signup` - Create a new user account
-- `POST /api/auth/signin` - Sign in with existing account
+- `POST /api/signup` - Create a new user account
+- `POST /api/signin` - Sign in with existing account
 
 ### Users
 - `GET /api/users` - Get all users (for testing)
@@ -55,26 +89,42 @@ The application will be available at `http://localhost:3000`
 ## Project Structure
 
 ```
-src/
-├── app/
-│   ├── api/
-│   │   ├── auth/
-│   │   │   ├── signin/route.ts
-│   │   │   └── signup/route.ts
-│   │   └── users/route.ts
-│   ├── page.tsx
-│   └── layout.tsx
-├── components/
-│   └── AuthPage.tsx
-└── lib/
-    └── cosmosdb.ts
+├── src/
+│   ├── app/
+│   │   ├── page.tsx
+│   │   └── layout.tsx
+│   └── components/
+│       └── AuthPage.tsx
+├── api/
+│   ├── cosmosdb.ts
+│   ├── signup.ts
+│   ├── signin.ts
+│   ├── users.ts
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── host.json
+│   └── local.settings.json
+├── staticwebapp.config.json
+└── next.config.ts
 ```
 
-## Testing the Integration
+## Deployment to Azure Static Web Apps
 
-1. **Sign Up**: Create a new user account - this will create a new document in Cosmos DB
-2. **Sign In**: Sign in with the created account - this will query and update the user document
-3. **View Users**: Visit `/api/users` to see all created users (passwords are excluded)
+1. **Push to GitHub**: Make sure your code is in a GitHub repository
+2. **Create Azure Static Web App**: In Azure portal, create a new Static Web App
+3. **Configure Build**: Set the following build configuration:
+   - **App location**: `/` (root)
+   - **API location**: `/api`
+   - **Output location**: `out`
+4. **Environment Variables**: Add your Cosmos DB credentials in the Azure portal under Configuration
+5. **Deploy**: The GitHub Action will automatically build and deploy your app
+
+## Local Development vs Production
+
+- **Local**: Uses `local.settings.json` for Azure Functions environment variables
+- **Production**: Uses Azure Static Web Apps configuration settings
+- **Frontend**: Next.js static export for optimal performance
+- **Backend**: Azure Functions for serverless API endpoints
 
 ## Important Notes
 
