@@ -9,6 +9,9 @@
     "rewrite": "/index.html"
   },
   "mimeTypes": {
-    ".json": "text/json"
+    ".json": "application/json"
+  },
+  "platform": {
+    "apiRuntime": "node:18"
   }
 }
