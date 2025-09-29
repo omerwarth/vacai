@@ -20,6 +20,10 @@ jobs:
   steps:
   - checkout: self
     submodules: true
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '20.x'
+    displayName: 'Use Node.js 20.x'
   - task: AzureStaticWebApp@0
     inputs:
       azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN_PURPLE_SAND_06148DA0F)
