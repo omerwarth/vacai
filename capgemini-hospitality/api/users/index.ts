@@ -1,5 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
-import { cosmosDB } from '../../cosmosdb';
+import { cosmosDB } from '../cosmosdb';
 
 export async function users(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`HTTP function processed request for url "${request.url}"`);
@@ -17,7 +17,7 @@ export async function users(request: HttpRequest, context: InvocationContext): P
             status: 200,
             headers: {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': 'http://localhost:3000',
+                'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Credentials': 'true'
             },
             body: JSON.stringify({
@@ -31,7 +31,7 @@ export async function users(request: HttpRequest, context: InvocationContext): P
             status: 500,
             headers: {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': 'http://localhost:3000',
+                'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Credentials': 'true'
             },
             body: JSON.stringify({ error: 'Failed to fetch users' })

@@ -1,5 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
-import { cosmosDB } from '../../cosmosdb';
+import { cosmosDB } from '../cosmosdb';
 
 export async function signin(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`HTTP function processed request for url "${request.url}"`);
@@ -10,7 +10,7 @@ export async function signin(request: HttpRequest, context: InvocationContext): 
         return {
             status: 204,
             headers: {
-                'Access-Control-Allow-Origin': 'http://localhost:3000',
+                'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'POST, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type',
                 'Access-Control-Allow-Credentials': 'true'
@@ -29,7 +29,7 @@ export async function signin(request: HttpRequest, context: InvocationContext): 
                 status: 400,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': 'http://localhost:3000',
+                    'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Credentials': 'true'
                 },
                 body: JSON.stringify({ error: 'Email and password are required' })
@@ -44,7 +44,7 @@ export async function signin(request: HttpRequest, context: InvocationContext): 
                 status: 401,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': 'http://localhost:3000',
+                    'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Credentials': 'true'
                 },
                 body: JSON.stringify({ error: 'Invalid email or password' })
@@ -59,7 +59,7 @@ export async function signin(request: HttpRequest, context: InvocationContext): 
                 status: 401,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': 'http://localhost:3000',
+                    'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Credentials': 'true'
                 },
                 body: JSON.stringify({ error: 'Invalid email or password' })
@@ -83,7 +83,7 @@ export async function signin(request: HttpRequest, context: InvocationContext): 
             status: 200,
             headers: {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': 'http://localhost:3000',
+                'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Credentials': 'true'
             },
             body: JSON.stringify({
@@ -98,7 +98,7 @@ export async function signin(request: HttpRequest, context: InvocationContext): 
             status: 500,
             headers: {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': 'http://localhost:3000',
+                'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Credentials': 'true'
             },
             body: JSON.stringify({ error: 'Failed to sign in' })

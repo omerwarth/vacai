@@ -1,5 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
-import { cosmosDB } from '../../cosmosdb';
+import { cosmosDB } from '../cosmosdb';
 
 export async function signup(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`HTTP function processed request for url "${request.url}"`);
@@ -9,7 +9,7 @@ export async function signup(request: HttpRequest, context: InvocationContext): 
         return {
             status: 204,
             headers: {
-                'Access-Control-Allow-Origin': 'http://localhost:3000',
+                'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'POST, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type',
                 'Access-Control-Allow-Credentials': 'true'
@@ -27,7 +27,7 @@ export async function signup(request: HttpRequest, context: InvocationContext): 
                 status: 400,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': 'http://localhost:3000',
+                    'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Credentials': 'true'
                 },
                 body: JSON.stringify({ error: 'Email and password are required' })
@@ -42,7 +42,7 @@ export async function signup(request: HttpRequest, context: InvocationContext): 
                 status: 409,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': 'http://localhost:3000',
+                    'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Credentials': 'true'
                 },
                 body: JSON.stringify({ error: 'User with this email already exists' })
@@ -70,7 +70,7 @@ export async function signup(request: HttpRequest, context: InvocationContext): 
             status: 201,
             headers: {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': 'http://localhost:3000',
+                'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Credentials': 'true'
             },
             body: JSON.stringify({
@@ -85,7 +85,7 @@ export async function signup(request: HttpRequest, context: InvocationContext): 
             status: 500,
             headers: {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': 'http://localhost:3000',
+                'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Credentials': 'true'
             },
             body: JSON.stringify({ error: 'Failed to create user' })

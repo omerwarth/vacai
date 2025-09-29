@@ -2,7 +2,7 @@
   "name": "capgemini-hospitality-functions",
   "version": "1.0.0",
   "description": "Azure Functions for Capgemini Hospitality",
-  "main": "dist/index.js",
+  "main": "index.js",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
