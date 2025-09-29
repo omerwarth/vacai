@@ -94,7 +94,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
                 Secure & Reliable
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Enterprise-grade security with Azure's robust infrastructure and compliance standards.
+                Enterprise-grade security with Azure&apos;s robust infrastructure and compliance standards.
               </p>
             </div>
 

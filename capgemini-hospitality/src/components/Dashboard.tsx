@@ -36,7 +36,7 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
       } else {
         setError('Failed to fetch users');
       }
-    } catch (err) {
+    } catch (error) {
       setError('Failed to connect to server');
     }
     setLoading(false);
