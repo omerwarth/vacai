@@ -2,7 +2,20 @@
 
 import { useState } from 'react';
 
-export default function AuthPage() {
+interface User {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface AuthPageProps {
+  onSignIn: (user: User) => void;
+}
+
+export default function AuthPage({ onSignIn }: AuthPageProps) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -42,6 +55,12 @@ export default function AuthPage() {
           setMessage(data.message || (isSignUp ? 'Account created successfully!' : 'Signed in successfully!'));
           if (isSignUp) {
             setIsSignUp(false); // Switch to sign in after successful signup
+          } else {
+            // Successful sign in - call the onSignIn callback with user data
+            if (data.user) {
+              onSignIn(data.user);
+              return; // Exit early to prevent clearing form data
+            }
           }
           setFormData({ email: '', password: '', firstName: '', lastName: '' });
         } else {
