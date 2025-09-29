@@ -1,0 +1,9 @@
+*.ts
+*.js.map
+src/
+tsconfig.json
+node_modules/
+.git/
+.vscode/
+local.settings.json
+.env
