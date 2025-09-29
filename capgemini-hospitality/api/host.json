@@ -15,7 +15,8 @@
   "cors": {
     "allowedOrigins": [
       "http://localhost:3000",
-      "https://purple-sand-06148da0f.1.azurestaticapps.net"
+      "http://localhost:3001",
+      "https://*.azurestaticapps.net"
     ],
     "supportCredentials": true
   }
