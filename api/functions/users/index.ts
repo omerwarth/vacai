@@ -1,5 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
-import { cosmosDB } from '../cosmosdb';
+import { cosmosDB } from '../../cosmosdb';
 
 export async function users(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`HTTP function processed request for url "${request.url}"`);

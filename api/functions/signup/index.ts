@@ -1,12 +1,11 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
-import { cosmosDB } from '../cosmosdb';
+import { cosmosDB } from '../../cosmosdb';
 
-export async function signin(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export async function signup(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`HTTP function processed request for url "${request.url}"`);
     
     // Handle OPTIONS request for CORS preflight
     if (request.method === 'OPTIONS') {
-        context.log('Handling OPTIONS request');
         return {
             status: 204,
             headers: {
@@ -19,9 +18,8 @@ export async function signin(request: HttpRequest, context: InvocationContext): 
     }
 
     try {
-        context.log('Processing POST request');
         const body = await request.json() as any;
-        const { email, password } = body || {};
+        const { email, password, firstName, lastName } = body || {};
 
         // Basic validation
         if (!email || !password) {
@@ -36,64 +34,53 @@ export async function signin(request: HttpRequest, context: InvocationContext): 
             };
         }
 
-        // Find user by email
-        const users = await cosmosDB.getItems(`SELECT * FROM c WHERE c.email = "${email}"`);
+        // Check if user already exists
+        const existingUsers = await cosmosDB.getItems(`SELECT * FROM c WHERE c.email = "${email}"`);
         
-        if (users.length === 0) {
+        if (existingUsers.length > 0) {
             return {
-                status: 401,
+                status: 409,
                 headers: {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Credentials': 'true'
                 },
-                body: JSON.stringify({ error: 'Invalid email or password' })
+                body: JSON.stringify({ error: 'User with this email already exists' })
             };
         }
 
-        const user = users[0];
-
-        // Check password (in production, compare with hashed password)
-        if (user.password !== password) {
-            return {
-                status: 401,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Credentials': 'true'
-                },
-                body: JSON.stringify({ error: 'Invalid email or password' })
-            };
-        }
-
-        // Update last login time
-        const updatedUser = {
-            ...user,
-            lastLoginAt: new Date().toISOString(),
+        // Create new user
+        const newUser = {
+            id: Math.random().toString(36).substring(7),
+            email,
+            password, // In production, hash this password
+            firstName: firstName || '',
+            lastName: lastName || '',
+            createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
 
-        await cosmosDB.updateItem(user.id as string, updatedUser);
+        await cosmosDB.createItem(newUser);
 
         // Don't return password in response
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { password: _, ...userResponse } = user;
+        const { password: _, ...userResponse } = newUser;
 
         return {
-            status: 200,
+            status: 201,
             headers: {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Credentials': 'true'
             },
             body: JSON.stringify({
-                message: 'Signed in successfully!',
+                message: 'User created successfully!',
                 user: userResponse
             })
         };
 
     } catch (error) {
-        context.log('Signin error:', error);
+        context.log('Signup error:', error);
         return {
             status: 500,
             headers: {
@@ -101,13 +88,13 @@ export async function signin(request: HttpRequest, context: InvocationContext): 
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Credentials': 'true'
             },
-            body: JSON.stringify({ error: 'Failed to sign in' })
+            body: JSON.stringify({ error: 'Failed to create user' })
         };
     }
 }
 
-app.http('signin', {
+app.http('signup', {
     methods: ['GET', 'POST', 'OPTIONS'],
     authLevel: 'anonymous',
-    handler: signin
+    handler: signup
 });
