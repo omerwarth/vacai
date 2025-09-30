@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { apiService } from '@/config/api';
 
 interface User {
   id: string;
@@ -27,17 +28,11 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
 
   const fetchUsers = async () => {
     try {
-      const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:7071' : '';
-      const response = await fetch(`${baseUrl}/api/users`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data.users || []);
-      } else {
-        setError('Failed to fetch users');
-      }
+      const data = await apiService.getUsers();
+      setUsers(data.users || []);
     } catch (error) {
-      setError('Failed to connect to server');
+      console.error('Failed to fetch users:', error);
+      setError(error instanceof Error ? error.message : 'Failed to connect to server');
     }
     setLoading(false);
   };

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { apiService } from '@/config/api';
 
 interface User {
   id: string;
@@ -33,48 +34,27 @@ export default function AuthPage({ onSignIn }: AuthPageProps) {
     setMessage('');
 
     try {
-      // Use relative paths for Azure Static Web Apps, localhost for development
-      const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:7071' : '';
-      const endpoint = isSignUp ? `${baseUrl}/api/signup` : `${baseUrl}/api/signin`;
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-      const contentType = response.headers.get('Content-Type');
-      console.log('Content-Type:', contentType);
-      
-      if (contentType && contentType.includes('application/json')) {
-        const data = await response.json();
-        if (response.ok) {
-          setMessage(data.message || (isSignUp ? 'Account created successfully!' : 'Signed in successfully!'));
-          if (isSignUp) {
-            setIsSignUp(false); // Switch to sign in after successful signup
-          } else {
-            // Successful sign in - call the onSignIn callback with user data
-            if (data.user) {
-              onSignIn(data.user);
-              return; // Exit early to prevent clearing form data
-            }
-          }
-          setFormData({ email: '', password: '', firstName: '', lastName: '' });
-        } else {
-          setMessage(data.error || 'An error occurred');
-        }
+      if (isSignUp) {
+        // Sign up with external Azure Functions App
+        const data = await apiService.signup(formData);
+        setMessage(data.message || 'Account created successfully!');
+        setIsSignUp(false); // Switch to sign in after successful signup
+        setFormData({ email: '', password: '', firstName: '', lastName: '' });
       } else {
-        // Log the raw response body for debugging
-        const responseText = await response.text();
-        console.log('Raw response body:', responseText);
-        setMessage('Unexpected response format from server');
+        // Sign in with external Azure Functions App
+        const data = await apiService.signin(formData.email, formData.password);
+        setMessage(data.message || 'Signed in successfully!');
+        
+        // Successful sign in - call the onSignIn callback with user data
+        if (data.user) {
+          onSignIn(data.user);
+          return; // Exit early to prevent clearing form data
+        }
+        setFormData({ email: '', password: '', firstName: '', lastName: '' });
       }
     } catch (error) {
-      console.error('Fetch error:', error);
-      setMessage('Failed to connect to server');
+      console.error('Authentication error:', error);
+      setMessage(error instanceof Error ? error.message : 'An error occurred');
     }
     setLoading(false);
   };

@@ -1,9 +1,0 @@
-*.ts
-*.js.map
-tsconfig.json
-node_modules/
-.git/
-.vscode/
-local.settings.json
-.env
-build-api.sh
