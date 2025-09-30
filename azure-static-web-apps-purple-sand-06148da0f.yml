@@ -33,6 +33,6 @@ jobs:
       azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN_PURPLE_SAND_06148DA0F)
       app_location: "capgemini-hospitality"        # frontend
       api_location: "capgemini-hospitality/api"    # backend API (Azure Functions)
-      output_location: "out"                       # frontend build output
+      output_location: ".next"                       # frontend build output
     env:
       NODE_VERSION: '20.x'   # ensure internal build also uses Node 20
