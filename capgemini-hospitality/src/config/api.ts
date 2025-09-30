@@ -23,7 +23,7 @@ const getApiConfig = (): ApiConfig => {
   // Option 2: Hardcode for different environments (fallback)
   const defaultBaseUrl = isDevelopment 
     ? 'http://localhost:7071' // Local development
-    : 'capgemini-hospitality-api-cfhkgge6a0h6ach6.eastus2-01.azurewebsites.net'; // Production Functions App
+    : 'https://capgemini-hospitality-api-cfhkgge6a0h6ach6.eastus2-01.azurewebsites.net'; // Production Functions App
   
   const baseUrl = functionsAppUrl || defaultBaseUrl;
   
