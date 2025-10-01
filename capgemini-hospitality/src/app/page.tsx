@@ -1,55 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
 import LandingPage from "@/components/LandingPage";
-import AuthPage from "@/components/AuthPage";
 import Dashboard from "@/components/Dashboard";
 
-interface User {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-type PageState = 'landing' | 'auth' | 'dashboard';
-
 export default function Home() {
-  const [currentPage, setCurrentPage] = useState<PageState>('landing');
-  const [user, setUser] = useState<User | null>(null);
+  const { user, isAuthenticated, isLoading } = useAuth0();
 
-  const handleGetStarted = () => {
-    setCurrentPage('auth');
-  };
+  // Show loading state while Auth0 is initializing
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const handleSignIn = (userData: User) => {
-    setUser(userData);
-    setCurrentPage('dashboard');
-  };
+  // If user is authenticated, show dashboard
+  if (isAuthenticated && user) {
+    return (
+      <div className="min-h-screen">
+        <Dashboard user={user} />
+      </div>
+    );
+  }
 
-  const handleSignOut = () => {
-    setUser(null);
-    setCurrentPage('landing');
-  };
-
-  const renderCurrentPage = () => {
-    switch (currentPage) {
-      case 'landing':
-        return <LandingPage onGetStarted={handleGetStarted} />;
-      case 'auth':
-        return <AuthPage onSignIn={handleSignIn} />;
-      case 'dashboard':
-        return user ? <Dashboard user={user} onSignOut={handleSignOut} /> : null;
-      default:
-        return <LandingPage onGetStarted={handleGetStarted} />;
-    }
-  };
-
+  // If user is not authenticated, show landing page with direct auth
   return (
     <div className="min-h-screen">
-      {renderCurrentPage()}
+      <LandingPage />
     </div>
   );
 }

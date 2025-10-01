@@ -1,10 +1,31 @@
 'use client';
 
-interface LandingPageProps {
-  onGetStarted: () => void;
-}
+import { useAuth0 } from '@auth0/auth0-react';
 
-export default function LandingPage({ onGetStarted }: LandingPageProps) {
+export default function LandingPage() {
+  const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0();
+
+  const handleLogin = () => {
+    loginWithRedirect({
+      authorizationParams: {
+        screen_hint: 'login',
+      }
+    });
+  };
+
+  const handleSignUp = () => {
+    loginWithRedirect({
+      authorizationParams: {
+        screen_hint: 'signup',
+      }
+    });
+  };
+
+  // If already authenticated, this component won't be shown
+  // but add this check for safety
+  if (isAuthenticated) {
+    return null;
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
@@ -17,10 +38,10 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
               </h1>
             </div>
             <button
-              onClick={onGetStarted}
+              onClick={handleLogin}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
             >
-              Get Started
+              Sign In
             </button>
           </div>
         </div>
@@ -44,13 +65,16 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
 
             <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
               <button
-                onClick={onGetStarted}
+                onClick={handleLogin}
                 className="w-full sm:w-auto px-8 py-4 bg-blue-600 text-white text-lg font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
               >
-                Get Started
+                Sign In
               </button>
-              <button className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-lg font-medium rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                Learn More
+              <button 
+                onClick={handleSignUp}
+                className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-lg font-medium rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Create Account
               </button>
             </div>
           </div>
@@ -126,7 +150,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
                 Join us today and experience the future of hospitality management.
               </p>
               <button
-                onClick={onGetStarted}
+                onClick={handleSignUp}
                 className="px-8 py-4 bg-white text-blue-600 text-lg font-medium rounded-lg hover:bg-gray-100 transition-colors shadow-lg"
               >
                 Sign In or Create Account

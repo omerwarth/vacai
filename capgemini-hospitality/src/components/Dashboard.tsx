@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAuth0, User as Auth0User } from '@auth0/auth0-react';
 import { apiService } from '@/config/api';
 
 interface User {
@@ -13,11 +14,11 @@ interface User {
 }
 
 interface DashboardProps {
-  user: User;
-  onSignOut: () => void;
+  user: Auth0User;
 }
 
-export default function Dashboard({ user, onSignOut }: DashboardProps) {
+export default function Dashboard({ user }: DashboardProps) {
+  const { logout, getAccessTokenSilently } = useAuth0();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -48,11 +49,11 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
                 Capgemini Hospitality Dashboard
               </h1>
               <p className="text-gray-600 dark:text-gray-300">
-                Welcome back, {user.firstName || user.email}!
+                Welcome back, {user.name || user.email}!
               </p>
             </div>
             <button
-              onClick={onSignOut}
+              onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
             >
               Sign Out
@@ -80,17 +81,15 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
                 Name
               </label>
               <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                {user.firstName && user.lastName 
-                  ? `${user.firstName} ${user.lastName}` 
-                  : 'Not provided'}
+                {user.name || 'Not provided'}
               </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Member Since
+                Last Login
               </label>
               <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                {new Date(user.createdAt).toLocaleDateString()}
+                {user.updated_at ? new Date(user.updated_at).toLocaleDateString() : 'N/A'}
               </p>
             </div>
             <div>
@@ -98,7 +97,7 @@ export default function Dashboard({ user, onSignOut }: DashboardProps) {
                 Last Updated
               </label>
               <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                {new Date(user.updatedAt).toLocaleDateString()}
+                {user.updated_at ? new Date(user.updated_at).toLocaleDateString() : 'N/A'}
               </p>
             </div>
           </div>
