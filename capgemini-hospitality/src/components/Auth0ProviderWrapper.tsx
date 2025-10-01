@@ -8,16 +8,16 @@ interface Auth0ProviderWrapperProps {
 }
 
 export default function Auth0ProviderWrapper({ children }: Auth0ProviderWrapperProps) {
-  const domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN!;
-  const clientId = process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID!;
+  const domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN;
+  const clientId = process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID;
 
   // Debug logging for troubleshooting (remove in production)
-  // console.log('Auth0 Environment Variables:', {
-  //   domain: domain || 'MISSING',
-  //   clientId: clientId ? 'SET' : 'MISSING',
-  //   audience: audience || 'MISSING',
-  //   nodeEnv: process.env.NODE_ENV
-  // });
+  console.log('Auth0 Environment Variables:', {
+    domain: domain || 'MISSING',
+    clientId: clientId ? 'SET' : 'MISSING',
+    nodeEnv: process.env.NODE_ENV,
+    allEnvVars: Object.keys(process.env).filter(key => key.startsWith('NEXT_PUBLIC_AUTH0'))
+  });
 
   // Safety check - prevent app from breaking if env vars are missing
   if (!domain || !clientId) {
@@ -44,7 +44,7 @@ export default function Auth0ProviderWrapper({ children }: Auth0ProviderWrapperP
     // Fallback for server-side rendering
     return process.env.NODE_ENV === 'production' 
       ? 'https://purple-sand-06148da0f.1.azurestaticapps.net'
-      : 'http://localhost:3001';
+      : 'http://localhost:3000';
   };
 
   return (
