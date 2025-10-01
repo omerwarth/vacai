@@ -12,15 +12,23 @@ export default function Auth0ProviderWrapper({ children }: Auth0ProviderWrapperP
   const clientId = process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID!;
   const audience = process.env.NEXT_PUBLIC_AUTH0_AUDIENCE;
 
-  // Get the current URL for redirects
-  const redirectUri = typeof window !== 'undefined' ? window.location.origin : '';
+  // Get the current URL for redirects - handle both development and production
+  const getRedirectUri = () => {
+    if (typeof window !== 'undefined') {
+      return window.location.origin;
+    }
+    // Fallback for server-side rendering
+    return process.env.NODE_ENV === 'production' 
+      ? 'https://purple-sand-06148da0f.1.azurestaticapps.net'
+      : 'http://localhost:3001';
+  };
 
   return (
     <Auth0Provider
       domain={domain}
       clientId={clientId}
       authorizationParams={{
-        redirect_uri: redirectUri,
+        redirect_uri: getRedirectUri(),
         scope: "openid profile email"
       }}
       useRefreshTokens={true}
