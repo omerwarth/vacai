@@ -10,15 +10,14 @@ interface Auth0ProviderWrapperProps {
 export default function Auth0ProviderWrapper({ children }: Auth0ProviderWrapperProps) {
   const domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN!;
   const clientId = process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID!;
-  const audience = process.env.NEXT_PUBLIC_AUTH0_AUDIENCE;
 
-  // Debug logging for troubleshooting
-  console.log('Auth0 Environment Variables:', {
-    domain: domain || 'MISSING',
-    clientId: clientId ? 'SET' : 'MISSING',
-    audience: audience || 'MISSING',
-    nodeEnv: process.env.NODE_ENV
-  });
+  // Debug logging for troubleshooting (remove in production)
+  // console.log('Auth0 Environment Variables:', {
+  //   domain: domain || 'MISSING',
+  //   clientId: clientId ? 'SET' : 'MISSING',
+  //   audience: audience || 'MISSING',
+  //   nodeEnv: process.env.NODE_ENV
+  // });
 
   // Safety check - prevent app from breaking if env vars are missing
   if (!domain || !clientId) {

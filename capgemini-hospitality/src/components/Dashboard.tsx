@@ -18,7 +18,7 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ user }: DashboardProps) {
-  const { logout, getAccessTokenSilently } = useAuth0();
+  const { logout } = useAuth0();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

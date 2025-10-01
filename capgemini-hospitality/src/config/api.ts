@@ -62,7 +62,7 @@ export const apiService = {
       try {
         const errorData = JSON.parse(errorText);
         throw new Error(errorData.error || `Server error: ${response.status}`);
-      } catch (parseError) {
+      } catch {
         throw new Error(`Server error (${response.status}): ${errorText || 'Unknown error'}`);
       }
     }
