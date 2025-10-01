@@ -34,5 +34,4 @@ jobs:
       app_location: "capgemini-hospitality"        # frontend
       api_location: ""                             # no API - using external Functions App
       output_location: "out"                       # frontend build output
-    env:
-      NODE_VERSION: '20.x'   # ensure internal build also uses Node 20
+    
