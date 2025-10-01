@@ -12,6 +12,31 @@ export default function Auth0ProviderWrapper({ children }: Auth0ProviderWrapperP
   const clientId = process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID!;
   const audience = process.env.NEXT_PUBLIC_AUTH0_AUDIENCE;
 
+  // Debug logging for troubleshooting
+  console.log('Auth0 Environment Variables:', {
+    domain: domain || 'MISSING',
+    clientId: clientId ? 'SET' : 'MISSING',
+    audience: audience || 'MISSING',
+    nodeEnv: process.env.NODE_ENV
+  });
+
+  // Safety check - prevent app from breaking if env vars are missing
+  if (!domain || !clientId) {
+    return (
+      <div className="min-h-screen bg-red-50 flex items-center justify-center">
+        <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Configuration Error</h2>
+          <p className="text-gray-600 mb-4">
+            Auth0 environment variables are missing. Please check your Azure Static Web App configuration.
+          </p>
+          <div className="text-left text-sm text-gray-500">
+            <p>Missing: {!domain && 'NEXT_PUBLIC_AUTH0_DOMAIN'} {!clientId && 'NEXT_PUBLIC_AUTH0_CLIENT_ID'}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Get the current URL for redirects - handle both development and production
   const getRedirectUri = () => {
     if (typeof window !== 'undefined') {
