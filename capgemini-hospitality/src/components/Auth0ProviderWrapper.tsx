@@ -11,14 +11,6 @@ export default function Auth0ProviderWrapper({ children }: Auth0ProviderWrapperP
   const domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN;
   const clientId = process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID;
 
-  // Debug logging for troubleshooting (remove in production)
-  console.log('Auth0 Environment Variables:', {
-    domain: domain || 'MISSING',
-    clientId: clientId ? 'SET' : 'MISSING',
-    nodeEnv: process.env.NODE_ENV,
-    allEnvVars: Object.keys(process.env).filter(key => key.startsWith('NEXT_PUBLIC_AUTH0'))
-  });
-
   // Safety check - prevent app from breaking if env vars are missing
   if (!domain || !clientId) {
     return (
