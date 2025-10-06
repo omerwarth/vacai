@@ -1,31 +1,25 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { useRouter } from 'next/navigation';
 
 export default function LandingPage() {
   const { loginWithRedirect, isAuthenticated } = useAuth0();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isAuthenticated) router.push('/dashboard');
+  }, [isAuthenticated, router]);
 
   const handleLogin = () => {
     loginWithRedirect({
       authorizationParams: {
         screen_hint: 'login',
-      }
+      },
     });
   };
 
-  const handleSignUp = () => {
-    loginWithRedirect({
-      authorizationParams: {
-        screen_hint: 'signup',
-      }
-    });
-  };
-
-  // If already authenticated, this component won't be shown
-  // but add this check for safety
-  if (isAuthenticated) {
-    return null;
-  }
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -51,25 +45,21 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Main Hero Section */}
+      {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 min-h-screen flex items-center">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             
-            {/* Left Side - Hero Content */}
+            {/* Left Hero Content */}
             <div className="text-white">
               <h1 className="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                Plan Your Perfect
-                <br />
-                Vacation
-                <br />
+                Plan Your Perfect<br />
+                Vacation<br />
                 <span className="text-blue-200">with AI</span>
               </h1>
-              
               <p className="text-xl text-blue-100 mb-8 leading-relaxed">
                 Smart Recommendations. Real-Time Deals. Personalized Just For You
               </p>
-
               <button
                 onClick={handleLogin}
                 className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition-colors shadow-lg"
@@ -78,7 +68,7 @@ export default function LandingPage() {
               </button>
             </div>
 
-            {/* Right Side - Login Form */}
+            {/* Right Login Form */}
             <div className="flex justify-center lg:justify-end">
               <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
                 <div className="text-center mb-6">
@@ -86,15 +76,19 @@ export default function LandingPage() {
                     Sign in to start planning today.
                   </h2>
                   <p className="text-gray-600">
-                    Don&apos;t have an account? Sign up.
+                    Don&apos;t have an account?{" "}
+                    <button
+                      onClick={() => router.push('/signup')}
+                      className="text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      Sign Up
+                    </button>
                   </p>
                 </div>
 
                 <form className="space-y-6">
                   <div>
-                    <label className="block text-gray-700 text-sm font-medium mb-2">
-                      Username
-                    </label>
+                    <label className="block text-gray-700 text-sm font-medium mb-2">Username</label>
                     <input 
                       type="text" 
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
@@ -102,9 +96,7 @@ export default function LandingPage() {
                   </div>
                   
                   <div>
-                    <label className="block text-gray-700 text-sm font-medium mb-2">
-                      Password
-                    </label>
+                    <label className="block text-gray-700 text-sm font-medium mb-2">Password</label>
                     <input 
                       type="password" 
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
@@ -121,16 +113,20 @@ export default function LandingPage() {
                 </form>
 
                 <div className="mt-6 text-center space-y-3">
-                  <button 
-                    onClick={handleSignUp}
+                  <button
+                    onClick={() => router.push('/signup')}
                     className="text-blue-600 hover:text-blue-700 font-medium"
                   >
                     Sign Up?
                   </button>
                   <br />
-                  <button className="text-blue-600 hover:text-blue-700 font-medium">
-                    Forgot Password?
+                  <button
+                    onClick={() => router.push('/resetpassword')}
+                    className="text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                  Forgot Password?
                   </button>
+                  <br />
                 </div>
               </div>
             </div>
@@ -141,9 +137,7 @@ export default function LandingPage() {
       {/* Bottom Section */}
       <div className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            How VACAI Works
-          </h2>
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">How VACAI Works</h2>
         </div>
       </div>
     </div>
