@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { apiService, TravelerProfile, TravelPreferences } from '@/config/api';
+import { apiService, TravelerProfile } from '@/config/api';
 import OnboardingModal from './OnboardingModal';
 
 interface OnboardingData {
@@ -24,13 +24,24 @@ const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfi
   const [newProfileName, setNewProfileName] = useState('');
   const [newProfileRelationship, setNewProfileRelationship] = useState('');
 
-  useEffect(() => {
-    if (user?.sub) {
-      loadTravelerProfiles();
+  const createDefaultProfile = useCallback(async () => {
+    if (!user?.sub) return;
+    
+    try {
+      const defaultProfile = {
+        name: user?.name || user?.email || 'My Profile',
+        relationship: 'self',
+        isDefault: true
+      };
+      
+      const response = await apiService.createTravelerProfile(user.sub, defaultProfile);
+      setProfiles([response.profile]);
+    } catch (error) {
+      console.error('Failed to create default profile:', error);
     }
   }, [user]);
 
-  const loadTravelerProfiles = async () => {
+  const loadTravelerProfiles = useCallback(async () => {
     if (!user?.sub) return;
     
     try {
@@ -48,24 +59,13 @@ const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfi
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.sub, createDefaultProfile]);
 
-  const createDefaultProfile = async () => {
-    if (!user?.sub) return;
-    
-    try {
-      const defaultProfile = {
-        name: user.name || user.email || 'My Profile',
-        relationship: 'self',
-        isDefault: true
-      };
-      
-      const response = await apiService.createTravelerProfile(user.sub, defaultProfile);
-      setProfiles([response.profile]);
-    } catch (error) {
-      console.error('Failed to create default profile:', error);
+  useEffect(() => {
+    if (user?.sub) {
+      loadTravelerProfiles();
     }
-  };
+  }, [user, loadTravelerProfiles]);
 
   const handleCreateProfile = async () => {
     if (!user?.sub || !newProfileName.trim()) return;

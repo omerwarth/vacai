@@ -150,7 +150,7 @@ export const apiService = {
       try {
         const errorData = JSON.parse(errorText);
         throw new Error(errorData.error || `Failed to fetch traveler profiles: ${response.status}`);
-      } catch (parseError) {
+      } catch {
         throw new Error(`Failed to fetch traveler profiles (${response.status}): ${errorText || 'Unknown error'}`);
       }
     }
@@ -174,7 +174,7 @@ export const apiService = {
       try {
         const errorData = JSON.parse(errorText);
         throw new Error(errorData.error || `Failed to create traveler profile: ${response.status}`);
-      } catch (parseError) {
+      } catch {
         throw new Error(`Failed to create traveler profile (${response.status}): ${errorText || 'Unknown error'}`);
       }
     }
@@ -198,7 +198,7 @@ export const apiService = {
       try {
         const errorData = JSON.parse(errorText);
         throw new Error(errorData.error || `Failed to update traveler profile: ${response.status}`);
-      } catch (parseError) {
+      } catch {
         throw new Error(`Failed to update traveler profile (${response.status}): ${errorText || 'Unknown error'}`);
       }
     }
@@ -221,7 +221,7 @@ export const apiService = {
       try {
         const errorData = JSON.parse(errorText);
         throw new Error(errorData.error || `Failed to delete traveler profile: ${response.status}`);
-      } catch (parseError) {
+      } catch {
         throw new Error(`Failed to delete traveler profile (${response.status}): ${errorText || 'Unknown error'}`);
       }
     }
@@ -249,7 +249,7 @@ export const apiService = {
       try {
         const errorData = JSON.parse(errorText);
         throw new Error(errorData.error || `Failed to fetch travel preferences: ${response.status}`);
-      } catch (parseError) {
+      } catch {
         throw new Error(`Failed to fetch travel preferences (${response.status}): ${errorText || 'Unknown error'}`);
       }
     }
@@ -318,14 +318,14 @@ export const apiService = {
         } else {
           errorText = await response.text();
         }
-      } catch (parseError) {
+      } catch {
         errorText = 'Could not parse error response';
       }
       
       try {
         const errorData = JSON.parse(errorText);
         throw new Error(errorData.error || `Failed to save travel preferences: ${response.status}`);
-      } catch (parseError) {
+      } catch {
         throw new Error(`Failed to save travel preferences (${response.status}): ${errorText || 'Unknown error'}`);
       }
     }
@@ -351,7 +351,7 @@ export const apiService = {
       try {
         const errorData = JSON.parse(errorText);
         throw new Error(errorData.error || `Failed to update travel preferences: ${response.status}`);
-      } catch (parseError) {
+      } catch {
         throw new Error(`Failed to update travel preferences (${response.status}): ${errorText || 'Unknown error'}`);
       }
     }
@@ -374,7 +374,7 @@ export const apiService = {
       try {
         const errorData = JSON.parse(errorText);
         throw new Error(errorData.error || `Failed to delete travel preferences: ${response.status}`);
-      } catch (parseError) {
+      } catch {
         throw new Error(`Failed to delete travel preferences (${response.status}): ${errorText || 'Unknown error'}`);
       }
     }

@@ -7,6 +7,7 @@ import ImageCarousel from './ImageCarousel';
 import OnboardingModal from './OnboardingModal';
 import SurveyResults from './SurveyResults';
 import TravelerProfileManager from './TravelerProfileManager';
+import JourneyPlanner from './JourneyPlanner';
 
 interface User {
   id: string;
@@ -38,6 +39,7 @@ export default function Dashboard({ user }: DashboardProps) {
   const [surveyData, setSurveyData] = useState<OnboardingData | null>(null);
   const [showProfileManager, setShowProfileManager] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<TravelerProfile | null>(null);
+  const [showJourneyPlanner, setShowJourneyPlanner] = useState(false);
 
   // Vacation destination images for carousel
   const vacationImages = [
@@ -85,8 +87,7 @@ export default function Dashboard({ user }: DashboardProps) {
   };
 
   const handleStartPlanning = () => {
-    // Implement vacation planning flow
-    console.log('Starting vacation planning...');
+    setShowJourneyPlanner(true);
   };
 
   const handleContinuePlanning = () => {
@@ -134,7 +135,14 @@ export default function Dashboard({ user }: DashboardProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      {/* Journey Planner Component */}
+      {showJourneyPlanner && (
+        <JourneyPlanner onBack={() => setShowJourneyPlanner(false)} />
+      )}
+      
+      {!showJourneyPlanner && (
+        <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -526,6 +534,8 @@ export default function Dashboard({ user }: DashboardProps) {
           onClose={handleSurveyResultsClose}
         />
       )}
-    </div>
+        </div>
+      )}
+    </>
   );
 }
