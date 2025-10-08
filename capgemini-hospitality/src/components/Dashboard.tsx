@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth0, User as Auth0User } from '@auth0/auth0-react';
-import { apiService } from '@/config/api';
+import { apiService, TravelerProfile } from '@/config/api';
 import ImageCarousel from './ImageCarousel';
+import OnboardingModal from './OnboardingModal';
+import SurveyResults from './SurveyResults';
+import TravelerProfileManager from './TravelerProfileManager';
 
 interface User {
   id: string;
@@ -12,6 +15,10 @@ interface User {
   lastName?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+interface OnboardingData {
+  [key: string]: string | string[] | number;
 }
 
 interface DashboardProps {
@@ -24,6 +31,13 @@ export default function Dashboard({ user }: DashboardProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [hasExistingPlan, setHasExistingPlan] = useState(false);
+  
+  // Onboarding states
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showSurveyResults, setShowSurveyResults] = useState(false);
+  const [surveyData, setSurveyData] = useState<OnboardingData | null>(null);
+  const [showProfileManager, setShowProfileManager] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState<TravelerProfile | null>(null);
 
   // Vacation destination images for carousel
   const vacationImages = [
@@ -41,6 +55,16 @@ export default function Dashboard({ user }: DashboardProps) {
     fetchUsers();
     // Check if user has existing vacation plans
     checkExistingPlans();
+    
+    // Load existing onboarding data if available
+    const existingOnboardingData = localStorage.getItem('onboarding-data');
+    if (existingOnboardingData) {
+      try {
+        setSurveyData(JSON.parse(existingOnboardingData));
+      } catch (error) {
+        console.error('Failed to parse onboarding data:', error);
+      }
+    }
   }, []);
 
   const fetchUsers = async () => {
@@ -80,6 +104,33 @@ export default function Dashboard({ user }: DashboardProps) {
   const handleViewHistory = () => {
     // Implement view planning history
     console.log('Viewing planning history...');
+  };
+
+  // Onboarding handlers
+  const handleTestOnboarding = () => {
+    setShowOnboarding(true);
+  };
+
+  const handleOnboardingComplete = (data: OnboardingData) => {
+    console.log('Onboarding completed with data:', data);
+    setSurveyData(data);
+    setShowOnboarding(false);
+    
+    // Store onboarding data in localStorage for persistence
+    localStorage.setItem('onboarding-data', JSON.stringify(data));
+    
+    // Show survey results immediately after onboarding completion
+    setTimeout(() => {
+      setShowSurveyResults(true);
+    }, 300); // Small delay for smooth transition
+  };
+
+  const handleOnboardingCancel = () => {
+    setShowOnboarding(false);
+  };
+
+  const handleSurveyResultsClose = () => {
+    setShowSurveyResults(false);
   };
 
   return (
@@ -209,6 +260,27 @@ export default function Dashboard({ user }: DashboardProps) {
           </div>
         </section>
       )}
+
+      {/* Traveler Profile Management Section */}
+      <section className="py-20 px-4 bg-gray-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Manage Travel Profiles
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Create profiles for family members, friends, or travel companions and set their preferences
+            </p>
+          </div>
+          
+          <TravelerProfileManager
+            onProfileSelect={(profile) => {
+              setSelectedProfile(profile);
+              console.log('Selected profile for planning:', profile);
+            }}
+          />
+        </div>
+      </section>
 
       {/* How VACAI Works Section */}
       <section className="py-20 px-4 bg-white">
@@ -351,7 +423,7 @@ export default function Dashboard({ user }: DashboardProps) {
                 </svg>
                 Development Debug Info
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-6">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="font-medium text-gray-700">Current User</p>
                   <p className="text-gray-600">{user.name || user.email}</p>
@@ -365,9 +437,94 @@ export default function Dashboard({ user }: DashboardProps) {
                   <p className="text-gray-600">{users.length} registered</p>
                 </div>
               </div>
+              
+              {/* Test Buttons */}
+              <div className="border-t border-gray-200 pt-4">
+                <h4 className="text-md font-medium text-gray-800 mb-3">Testing Tools</h4>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={handleTestOnboarding}
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-all shadow-sm"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Test Onboarding Flow
+                  </button>
+                  
+                  <button
+                    onClick={() => setShowProfileManager(!showProfileManager)}
+                    className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-all shadow-sm"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    {showProfileManager ? 'Hide' : 'Show'} Profile Manager
+                  </button>
+                  
+                  {surveyData && (
+                    <button
+                      onClick={() => setShowSurveyResults(true)}
+                      className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-all shadow-sm"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      View Last Survey Results
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </section>
+      )}
+      
+      {/* Profile Manager Debug Section */}
+      {process.env.NODE_ENV === 'development' && showProfileManager && (
+        <section className="py-12 px-4 bg-blue-50 border-t border-blue-200">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-blue-200">
+              <h3 className="text-lg font-semibold mb-4 text-gray-900 flex items-center">
+                <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                </svg>
+                Development Profile Manager
+              </h3>
+              
+              <TravelerProfileManager
+                onProfileSelect={(profile) => {
+                  setSelectedProfile(profile);
+                  console.log('Selected profile for planning:', profile);
+                  alert(`Selected ${profile.name} for trip planning!`);
+                }}
+              />
+              
+              {selectedProfile && (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-green-800 font-medium">
+                    Currently selected for planning: {selectedProfile.name} ({selectedProfile.relationship})
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+      
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onComplete={handleOnboardingComplete}
+        onCancel={handleOnboardingCancel}
+      />
+      
+      {/* Survey Results Modal */}
+      {surveyData && showSurveyResults && (
+        <SurveyResults
+          data={surveyData}
+          onClose={handleSurveyResultsClose}
+        />
       )}
     </div>
   );
