@@ -25,43 +25,53 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <form
-        onSubmit={handleReset}
-        className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6"
-      >
-        <h2 className="text-2xl font-bold text-center mb-2">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-blue-200 to-sky-300 relative overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80')] bg-cover bg-center opacity-40" />
+
+      {/* Overlay Blur */}
+      <div className="absolute inset-0 backdrop-blur-sm bg-white/40" />
+
+      <div className="relative z-10 w-full max-w-md bg-white/80 backdrop-blur-xl shadow-2xl rounded-2xl p-8">
+        <h2 className="text-3xl font-extrabold text-center text-sky-800 mb-2">
           Reset Your Password
         </h2>
-        <p className="text-gray-600 text-center mb-4">
-          Enter your email and we’ll send you a password reset link.
+        <p className="text-sky-700 text-center mb-6">
+          Enter your email below and we’ll send you a reset link.
         </p>
 
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-          required
-        />
+        <form onSubmit={handleReset} className="space-y-6">
+          <div>
+            <label className="block text-sky-900 font-medium mb-2">
+              Email Address
+            </label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 border border-sky-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition"
+              required
+            />
+          </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
-        >
-          {loading ? 'Redirecting...' : 'Send Reset Link'}
-        </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 bg-sky-600 text-white rounded-lg font-semibold hover:bg-sky-700 disabled:opacity-50 transition-colors shadow-lg"
+          >
+            {loading ? 'Redirecting...' : 'Send Reset Link'}
+          </button>
 
-        <button
-          type="button"
-          onClick={() => router.push('/landingpage')}
-          className="w-full py-3 mt-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-        >
-          Back to Login
-        </button>
-      </form>
+          <button
+            type="button"
+            onClick={() => router.push('/signin')}
+            className="w-full py-3 border border-sky-300 text-sky-800 rounded-lg font-medium hover:bg-sky-50 transition-colors"
+          >
+            Back to Login
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

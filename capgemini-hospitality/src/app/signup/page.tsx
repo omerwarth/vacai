@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function SignUp() {
   const { loginWithRedirect, isAuthenticated } = useAuth0();
@@ -21,7 +22,6 @@ export default function SignUp() {
   }, [isAuthenticated, router]);
 
   const validatePassword = (pwd: string) => {
-    // Minimum 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special char
     const strongPwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     return strongPwdRegex.test(pwd);
   };
@@ -42,7 +42,6 @@ export default function SignUp() {
       return;
     }
 
-    // Trigger Auth0 signup
     loginWithRedirect({
       authorizationParams: {
         screen_hint: "signup",
@@ -53,16 +52,27 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6">
-      <header className="mb-8 text-center max-w-2xl">
-        <h1 className="text-4xl font-bold text-gray-900">
-          Please enter your information to create your account.
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-100 to-blue-200 px-6 relative overflow-hidden">
+      
+      {/* Floating shapes for vacationy feel */}
+      <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-200 rounded-full opacity-20 animate-bounce-slow"></div>
+      <div className="absolute bottom-20 right-20 w-40 h-40 bg-pink-200 rounded-full opacity-20 animate-bounce-slow delay-150"></div>
+
+      <header className="mb-8 text-center max-w-2xl z-10 relative">
+        <h1 className="text-4xl lg:text-5xl font-bold text-gray-900">
+          Create your VACAI account
         </h1>
+        <p className="text-gray-600 mt-2 text-lg">
+          Enter your details to start planning your perfect vacation.
+        </p>
       </header>
 
-      <form
+      <motion.form
         onSubmit={handleSubmit}
-        className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-8 w-full max-w-md flex flex-col gap-4"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="bg-white rounded-3xl shadow-2xl border border-gray-200 p-10 w-full max-w-md flex flex-col gap-5 z-10 relative"
       >
         <div className="flex gap-4">
           <div className="flex-1">
@@ -73,7 +83,7 @@ export default function SignUp() {
               placeholder="First Name"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors placeholder-gray-400"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder-gray-400 transition-all"
               required
             />
           </div>
@@ -85,7 +95,7 @@ export default function SignUp() {
               placeholder="Last Name"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors placeholder-gray-400"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder-gray-400 transition-all"
               required
             />
           </div>
@@ -99,7 +109,7 @@ export default function SignUp() {
             placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors placeholder-gray-400"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder-gray-400 transition-all"
             required
           />
         </div>
@@ -112,7 +122,7 @@ export default function SignUp() {
             placeholder="Enter your phone number"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors placeholder-gray-400"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder-gray-400 transition-all"
             required
           />
         </div>
@@ -125,7 +135,7 @@ export default function SignUp() {
             placeholder="Enter a strong password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors placeholder-gray-400"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder-gray-400 transition-all"
             required
           />
         </div>
@@ -138,7 +148,7 @@ export default function SignUp() {
             placeholder="Confirm your password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors placeholder-gray-400"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder-gray-400 transition-all"
             required
           />
         </div>
@@ -147,11 +157,11 @@ export default function SignUp() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors"
+          className="w-full bg-blue-600 text-white py-4 rounded-2xl font-semibold text-lg hover:bg-blue-700 transition-colors shadow-lg"
         >
           Sign Up
         </button>
-      </form>
+      </motion.form>
     </div>
   );
 }
