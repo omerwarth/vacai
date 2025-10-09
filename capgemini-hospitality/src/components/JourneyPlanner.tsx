@@ -84,17 +84,31 @@ function JourneyPlannerContent({ onBack }: JourneyPlannerProps) {
 export default function JourneyPlanner({ onBack }: JourneyPlannerProps) {
   const runtime = useLocalRuntime(
     {
-      async *run({ messages: _messages }) {
-        // Simple mock implementation - replace with actual API call
-        yield {
-          content: [
-            {
-              type: "text",
-              text: "Hello! I'm your journey planning assistant. How can I help you plan your next trip?",
-            },
-          ],
-        };
+      async run({ messages, abortSignal }) {
+    // TODO replace with your own API
+    const result = await fetch("http://127.0.0.1:8000/api/chat/123", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
+      // forward the messages in the chat to the API
+      body: JSON.stringify({
+        messages,
+      }),
+      // if the user hits the "cancel" button or escape keyboard key, cancel the request
+      signal: abortSignal,
+    });
+
+    const data = await result.json();
+    return {
+      content: [
+        {
+          type: "text",
+          text: data.text,
+        },
+      ],
+    };
+  },
     },
     {
       initialMessages: [],
