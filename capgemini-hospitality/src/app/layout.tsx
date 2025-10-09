@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Auth0ProviderWrapper from "../components/Auth0ProviderWrapper";
-
+import { MyRuntimeProvider } from "@/components/RuntimeProvider"
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -24,14 +24,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <Auth0ProviderWrapper>
-          {children}
-        </Auth0ProviderWrapper>
-      </body>
-    </html>
+    <MyRuntimeProvider>
+        <html lang="en">
+          <body
+            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          >
+            <Auth0ProviderWrapper>
+              {children}
+            </Auth0ProviderWrapper>
+          </body>
+        </html>
+    </MyRuntimeProvider>
   );
 }

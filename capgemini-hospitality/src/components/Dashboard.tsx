@@ -8,7 +8,7 @@ import OnboardingModal from './OnboardingModal';
 import SurveyResults from './SurveyResults';
 import TravelerProfileManager from './TravelerProfileManager';
 import JourneyPlanner from './JourneyPlanner';
-
+import ChatInterface from "./ChatInterface";
 interface User {
   id: string;
   email: string;
@@ -134,7 +134,7 @@ export default function Dashboard({ user }: DashboardProps) {
     <>
       {/* Journey Planner Component */}
       {showJourneyPlanner && (
-        <JourneyPlanner onBack={() => setShowJourneyPlanner(false)} />
+        <ChatInterface onBack={() => setShowJourneyPlanner(false)} />
       )}
       
       {!showJourneyPlanner && (
