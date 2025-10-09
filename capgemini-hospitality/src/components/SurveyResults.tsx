@@ -111,7 +111,7 @@ const SurveyResults: React.FC<SurveyResultsProps> = ({ data, onClose }) => {
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Survey Results</h2>
-              <p className="text-gray-600 mt-1">Here's what we learned about you</p>
+              <p className="text-gray-600 mt-1">Here&apos;s what we learned about you</p>
             </div>
             <button
               onClick={onClose}
@@ -139,7 +139,7 @@ const SurveyResults: React.FC<SurveyResultsProps> = ({ data, onClose }) => {
               </h3>
             </div>
             <p className="text-blue-800">
-              Thanks for taking the time to tell us about yourself. We'll use this information to personalize your experience with VacAI.
+              Thanks for taking the time to tell us about yourself. We&apos;ll use this information to personalize your experience with VacAI.
             </p>
           </div>
 
@@ -185,7 +185,7 @@ const SurveyResults: React.FC<SurveyResultsProps> = ({ data, onClose }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-green-900">What's Next?</h3>
+              <h3 className="text-lg font-semibold text-green-900">What&apos;s Next?</h3>
             </div>
             <p className="text-green-800 mb-4">
               Based on your travel preferences, here are some personalized recommendations:

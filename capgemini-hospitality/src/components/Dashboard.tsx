@@ -29,8 +29,6 @@ interface DashboardProps {
 export default function Dashboard({ user }: DashboardProps) {
   const { logout } = useAuth0();
   const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [hasExistingPlan, setHasExistingPlan] = useState(false);
   
   // Onboarding states
@@ -75,9 +73,7 @@ export default function Dashboard({ user }: DashboardProps) {
       setUsers(data.users || []);
     } catch (error) {
       console.error('Failed to fetch users:', error);
-      setError(error instanceof Error ? error.message : 'Failed to connect to server');
     }
-    setLoading(false);
   };
 
   const checkExistingPlans = () => {

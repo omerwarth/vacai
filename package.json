@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@assistant-ui/react": "^0.11.28",
+    "@assistant-ui/react-markdown": "^0.11.1",
     "@auth0/auth0-react": "^2.5.0"
   }
 }

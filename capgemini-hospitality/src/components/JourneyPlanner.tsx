@@ -1,49 +1,32 @@
 'use client';
 
-import { useState } from 'react';
-import { useEdgeRuntime, AssistantRuntimeProvider } from "@assistant-ui/react";
-import { Thread } from "@assistant-ui/react";
-import { makeMarkdownText } from "@assistant-ui/react-markdown";
 import {
+  AssistantRuntimeProvider,
   useAssistantInstructions,
   useAssistantTool,
+  useLocalRuntime,
 } from "@assistant-ui/react";
+import { Thread } from "@/components/assistant-ui/thread";
 
 interface JourneyPlannerProps {
   onBack: () => void;
 }
 
-// Component that uses assistant hooks - must be inside AssistantRuntimeProvider
 function JourneyPlannerContent({ onBack }: JourneyPlannerProps) {
-  const [currentStep, setCurrentStep] = useState(1);
-  
-  // Assistant instructions for travel planning
   useAssistantInstructions(`
-    You are a professional travel planning assistant for a hospitality platform. 
+    You are a professional travel planning assistant for a hospitality platform.
     Your role is to help users plan personalized journeys based on their preferences and travel history.
-    
-    Key capabilities:
-    - Suggest destinations based on user preferences
-    - Recommend accommodations, activities, and dining
-    - Create detailed itineraries
-    - Provide travel tips and local insights
-    - Consider budget, travel dates, and group size
-    
-    Always be helpful, friendly, and provide actionable travel advice.
   `);
 
-  // Tool to refresh the planning session
   useAssistantTool({
     toolName: "restart_planning",
     description: "Restart the journey planning session with a fresh start",
     parameters: {},
     execute: async () => {
-      setCurrentStep(1);
       window.location.reload();
     },
   });
 
-  // Tool to go back to dashboard
   useAssistantTool({
     toolName: "back_to_dashboard",
     description: "Return to the main dashboard",
@@ -53,37 +36,44 @@ function JourneyPlannerContent({ onBack }: JourneyPlannerProps) {
     },
   });
 
-  const MarkdownText = makeMarkdownText();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
       <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <button
-              onClick={onBack}
-              className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <button
+            onClick={onBack}
+            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <svg
+              className="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to Dashboard
-            </button>
-            <h1 className="text-2xl font-bold text-gray-900">Journey Planner</h1>
-            <div className="w-20"></div> {/* Spacer for centering */}
-          </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Back to Dashboard
+          </button>
+          <h1 className="text-2xl font-bold text-gray-900">Journey Planner</h1>
+          <div className="w-20" />
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">AI Journey Assistant</h2>
-          <div className="space-y-4">
-            <Thread
-              assistantMessage={{ components: { Text: MarkdownText } }}
-            />
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="p-4 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900">AI Journey Assistant</h2>
+            <p className="text-gray-600 text-sm mt-1">
+              Let me help you plan your perfect trip
+            </p>
+          </div>
+          <div className="h-[600px] overflow-hidden">
+            <Thread />
           </div>
         </div>
       </main>
@@ -91,12 +81,25 @@ function JourneyPlannerContent({ onBack }: JourneyPlannerProps) {
   );
 }
 
-// Main component that sets up the runtime provider
 export default function JourneyPlanner({ onBack }: JourneyPlannerProps) {
-  const runtime = useEdgeRuntime({
-    api: "/api/chat",
-    unstable_AISDKInterop: true,
-  });
+  const runtime = useLocalRuntime(
+    {
+      async *run({ messages: _messages }) {
+        // Simple mock implementation - replace with actual API call
+        yield {
+          content: [
+            {
+              type: "text",
+              text: "Hello! I'm your journey planning assistant. How can I help you plan your next trip?",
+            },
+          ],
+        };
+      },
+    },
+    {
+      initialMessages: [],
+    }
+  );
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
