@@ -7,35 +7,6 @@ type NotificationModalProps = {
   onClose: () => void;
 };
 
-export default function Notification({ showReturn = true }: { showReturn?: boolean }) {
-  return (
-    <main className="min-h-screen bg-gradient-to-b from-white to-sky-50 py-20 px-4">
-      <div className="max-w-3xl mx-auto p-8 rounded-2xl shadow relative bg-gradient-to-br from-white to-sky-50/60 border border-sky-100">
-        {showReturn && (
-          <a href="/" className="absolute top-4 right-4 inline-flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-sky-50 text-sky-700 border border-sky-100 shadow-sm" aria-label="Return to main menu">Main menu</a>
-        )}
-
-        <h1 className="text-2xl font-extrabold text-sky-800 mb-2">Notifications</h1>
-        <p className="text-slate-700 mb-6">Your recent notifications and updates.</p>
-
-        <div className="space-y-4">
-          <div className="p-4 bg-white/80 rounded-lg border border-gray-100">
-            <p className="text-sm text-gray-600">System</p>
-            <p className="text-lg font-medium text-sky-700">Maintenance scheduled for 11:00 PM UTC.</p>
-            <p className="text-xs text-gray-500 mt-1">Oct 9, 2025</p>
-          </div>
-
-          <div className="p-4 bg-white/80 rounded-lg border border-gray-100">
-            <p className="text-sm text-gray-600">Reminder</p>
-            <p className="text-lg font-medium text-sky-700">You have an upcoming trip draft—review it before publishing.</p>
-            <p className="text-xs text-gray-500 mt-1">Oct 6, 2025</p>
-          </div>
-        </div>
-      </div>
-    </main>
-  );
-}
-
 export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
   useEffect(() => {
     if (!isOpen) return;
@@ -61,7 +32,7 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
           <h2 className="text-xl font-extrabold text-sky-800 mb-2">Notifications</h2>
           <p className="text-sm text-sky-700 mb-4">Recent activity and system messages.</p>
 
-          <div className="space-y-3">
+          <div className="space-y-3 overflow-auto max-h-[60vh] notifications-scroll pr-1">
             <div className="p-3 bg-white/80 rounded-lg border border-gray-100">
               <p className="text-sm text-gray-600">System</p>
               <p className="text-base font-medium text-sky-700">Maintenance scheduled for 11:00 PM UTC.</p>
@@ -69,7 +40,27 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
             </div>
             <div className="p-3 bg-white/80 rounded-lg border border-gray-100">
               <p className="text-sm text-gray-600">Reminder</p>
-              <p className="text-base font-medium text-sky-700">You have an upcoming trip draft—review it before publishing.</p>
+              <p className="text-base font-medium text-sky-700">You have an upcoming trip on XX/XX/XXXX.</p>
+              <p className="text-xs text-gray-500 mt-1">Oct 6, 2025</p>
+            </div>
+            <div className="p-3 bg-white/80 rounded-lg border border-gray-100">
+              <p className="text-sm text-gray-600">Reminder</p>
+              <p className="text-base font-medium text-sky-700">You have an upcoming trip on XX/XX/XXXX.</p>
+              <p className="text-xs text-gray-500 mt-1">Oct 6, 2025</p>
+            </div>
+            <div className="p-3 bg-white/80 rounded-lg border border-gray-100">
+              <p className="text-sm text-gray-600">Reminder</p>
+              <p className="text-base font-medium text-sky-700">You have an upcoming trip on XX/XX/XXXX.</p>
+              <p className="text-xs text-gray-500 mt-1">Oct 6, 2025</p>
+            </div>
+            <div className="p-3 bg-white/80 rounded-lg border border-gray-100">
+              <p className="text-sm text-gray-600">Reminder</p>
+              <p className="text-base font-medium text-sky-700">You have an upcoming trip on XX/XX/XXXX.</p>
+              <p className="text-xs text-gray-500 mt-1">Oct 6, 2025</p>
+            </div>
+            <div className="p-3 bg-white/80 rounded-lg border border-gray-100">
+              <p className="text-sm text-gray-600">Reminder</p>
+              <p className="text-base font-medium text-sky-700">You have an upcoming trip on XX/XX/XXXX.</p>
               <p className="text-xs text-gray-500 mt-1">Oct 6, 2025</p>
             </div>
           </div>
@@ -77,4 +68,25 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
       </div>
     </div>
   );
+}
+
+// Styles for custom scrollbar behaviour (transparent thumb, right-side placement)
+// We add both WebKit and Firefox rules. The scrollbar remains usable but visually transparent.
+// Keep this near the component so it's easy to locate. If your project uses global CSS,
+// you can move these into a central stylesheet.
+const _style = (`
+.notifications-scroll { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+.notifications-scroll::-webkit-scrollbar { width: 10px; }
+.notifications-scroll::-webkit-scrollbar-track { background: transparent; }
+.notifications-scroll::-webkit-scrollbar-thumb { background: transparent; border-radius: 9999px; }
+`);
+
+// Inject the style tag into the document at runtime for environments that accept it.
+if (typeof document !== 'undefined') {
+  if (!document.getElementById('notification-scroll-style')) {
+    const s = document.createElement('style');
+    s.id = 'notification-scroll-style';
+    s.innerHTML = _style;
+    document.head.appendChild(s);
+  }
 }

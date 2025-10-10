@@ -223,13 +223,13 @@ export default function Dashboard({ user }: DashboardProps) {
             <nav className="hidden md:flex items-center space-x-6">
               <button
                 onClick={(e) => { e.preventDefault(); setShowHelpModal(true); }}
-                className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline"
+                className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer"
               >
                 Help/FAQ
               </button>
               <button
                 onClick={(e) => { e.preventDefault(); setShowNotificationModal(true); }}
-                className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline"
+                className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer"
               >
                 Notifications
               </button>
@@ -237,10 +237,11 @@ export default function Dashboard({ user }: DashboardProps) {
               <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">Settings</a>
               <button
                 onClick={(e) => { e.preventDefault(); setShowContactModal(true); }}
-                className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline"
+                className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer"
               >
                 Contact
               </button>
+              
               <div className="relative group profile-dropdown">
                 <button className="bg-white/90 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border border-gray-200 hover:border-gray-300 hover:shadow-sm">
                   Profile
@@ -620,7 +621,7 @@ export default function Dashboard({ user }: DashboardProps) {
           onClose={handleSurveyResultsClose}
         />
       )}
-      {/* Help Modal (kept inside components) */}
+      {/* Modals (kept inside components) */}
   <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
   <ContactModal isOpen={showContactModal} onClose={() => setShowContactModal(false)} />
   <NotificationModal isOpen={showNotificationModal} onClose={() => setShowNotificationModal(false)} />

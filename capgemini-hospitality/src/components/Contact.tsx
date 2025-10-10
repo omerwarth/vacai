@@ -7,32 +7,6 @@ type ContactModalProps = {
   onClose: () => void;
 };
 
-export default function Contact({ showReturn = true }: { showReturn?: boolean }) {
-  return (
-    <main className="min-h-screen bg-gradient-to-b from-white to-sky-50 py-20 px-4">
-      <div className="max-w-3xl mx-auto p-8 rounded-2xl shadow relative bg-gradient-to-br from-white to-sky-50/60 border border-sky-100">
-        {showReturn && (
-          <a href="/" className="absolute top-4 right-4 inline-flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-sky-50 text-sky-700 border border-sky-100 shadow-sm" aria-label="Return to main menu">Main menu</a>
-        )}
-
-        <h1 className="text-2xl font-extrabold text-sky-800 mb-2">Contact Support</h1>
-        <p className="text-slate-700 mb-6">If you need help, reach out to our support team.</p>
-
-        <div className="space-y-4">
-          <div className="p-4 bg-white/80 rounded-lg border border-gray-100">
-            <p className="text-sm text-gray-600">Email</p>
-            <p className="text-lg font-medium text-emerald-700">support@example.fake</p>
-          </div>
-
-          <div className="p-4 bg-white/80 rounded-lg border border-gray-100">
-            <p className="text-sm text-gray-600">Phone</p>
-            <p className="text-lg font-medium text-emerald-700">+1 (XXX) XXX-XXXX</p>
-          </div>
-        </div>
-      </div>
-    </main>
-  );
-}
 
 export function ContactModal({ isOpen, onClose }: ContactModalProps) {
   useEffect(() => {

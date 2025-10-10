@@ -7,36 +7,6 @@ type HelpModalProps = {
   onClose: () => void;
 };
 
-export default function Help({ showReturn = true }: { showReturn?: boolean }) {
-  return (
-    <main className="min-h-screen bg-gradient-to-b from-white to-sky-50 py-20 px-4">
-      <div className="max-w-4xl mx-auto p-8 rounded-2xl shadow relative bg-gradient-to-br from-white to-sky-50/60 border border-sky-100">
-        {/* Top-right return link for when this is rendered as a standalone page */}
-        {showReturn && (
-          <a
-            href="/"
-            className="absolute top-4 right-4 inline-flex items-center gap-2 px-3 py-1 rounded-md text-sm bg-sky-50 text-sky-700 border border-sky-100 shadow-sm"
-            aria-label="Return to main menu"
-          >
-            Main menu
-          </a>
-        )}
-
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-extrabold text-sky-700">Help & FAQ</h1>
-          <div className="inline-flex items-center gap-3">
-            <span className="inline-block w-3 h-3 rounded-full bg-sky-600 shadow-sm" aria-hidden="true"></span>
-            <span className="text-sm text-sky-700 font-medium">VACAI Help</span>
-          </div>
-        </div>
-        <p className="text-slate-700 mb-6">Welcome to the help page. Here you can find answers to common questions about using VACAI.</p>
-
-        <HelpFAQList />
-      </div>
-    </main>
-  );
-}
-
 function HelpFAQList() {
   return (
     <section className="space-y-4">
