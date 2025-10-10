@@ -31,39 +31,45 @@ export default function Help({ showReturn = true }: { showReturn?: boolean }) {
         </div>
         <p className="text-slate-700 mb-6">Welcome to the help page. Here you can find answers to common questions about using VACAI.</p>
 
-        <section className="space-y-4">
-          <details className="border rounded overflow-hidden">
-            <summary className="flex items-center justify-between px-4 py-3 bg-sky-50 hover:bg-sky-100 cursor-pointer font-medium">
-              <span>How do I start planning a trip?</span>
-              <svg className="w-4 h-4 text-sky-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
-            </summary>
-            <div className="px-4 py-4 bg-white">
-              <p className="text-gray-700">Click the "Start Planning Your Journey" button on the homepage or dashboard to begin.</p>
-            </div>
-          </details>
-
-          <details className="border rounded overflow-hidden">
-            <summary className="flex items-center justify-between px-4 py-3 bg-rose-50 hover:bg-rose-100 cursor-pointer font-medium">
-              <span>How do I sign out?</span>
-              <svg className="w-4 h-4 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
-            </summary>
-            <div className="px-4 py-4 bg-white">
-              <p className="text-gray-700">Open the Profile menu in the top-right and click "Sign Out".</p>
-            </div>
-          </details>
-
-          <details className="border rounded overflow-hidden">
-            <summary className="flex items-center justify-between px-4 py-3 bg-emerald-50 hover:bg-emerald-100 cursor-pointer font-medium">
-              <span>Still need help?</span>
-              <svg className="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
-            </summary>
-            <div className="px-4 py-4 bg-white">
-              <p className="text-gray-700">Contact support at <a className="text-emerald-700 font-semibold underline" href="mailto:support@vacai.example">support@vacai.example</a>.</p>
-            </div>
-          </details>
-        </section>
+        <HelpFAQList />
       </div>
     </main>
+  );
+}
+
+function HelpFAQList() {
+  return (
+    <section className="space-y-4">
+      <details className="border rounded overflow-hidden">
+        <summary className="flex items-center justify-between px-4 py-3 bg-sky-50 hover:bg-sky-100 cursor-pointer font-medium">
+          <span>How do I start planning a trip?</span>
+          <svg className="w-4 h-4 text-sky-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </summary>
+        <div className="px-4 py-4 bg-transparent">
+          <p className="text-gray-700">Click the "Start Planning Your Journey" button on the homepage or dashboard to begin.</p>
+        </div>
+      </details>
+
+      <details className="border rounded overflow-hidden">
+        <summary className="flex items-center justify-between px-4 py-3 bg-rose-50 hover:bg-rose-100 cursor-pointer font-medium">
+          <span>How do I sign out?</span>
+          <svg className="w-4 h-4 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </summary>
+        <div className="px-4 py-4 bg-transparent">
+          <p className="text-gray-700">Open the Profile menu in the top-right and click "Sign Out".</p>
+        </div>
+      </details>
+
+      <details className="border rounded overflow-hidden">
+        <summary className="flex items-center justify-between px-4 py-3 bg-emerald-50 hover:bg-emerald-100 cursor-pointer font-medium">
+          <span>Still need help?</span>
+          <svg className="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </summary>
+        <div className="px-4 py-4 bg-transparent">
+          <p className="text-gray-700">Contact support at <a className="text-emerald-700 font-semibold underline" href="mailto:support@vacai.example">support@vacai.example</a>.</p>
+        </div>
+      </details>
+    </section>
   );
 }
 
@@ -85,7 +91,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} aria-hidden="true"></div>
 
       <div className="relative max-w-4xl w-full mx-4">
-        <div className="bg-white/95 rounded-2xl shadow-2xl overflow-hidden relative border border-gray-100 glass-card max-h-[90vh] w-full">
+        <div className="rounded-2xl shadow-2xl overflow-hidden relative border border-sky-100 max-h-[90vh] w-full bg-gradient-to-br from-white/60 to-sky-50/40 backdrop-blur-sm">
           {/* Close button */}
           <div className="absolute top-4 right-4 z-20">
             <button
@@ -99,14 +105,14 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
           </div>
 
           {/* Header */}
-          <div className="px-8 pt-12 pb-4 border-b border-gray-100">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900">Help & FAQ</h2>
-            <p className="text-sm text-gray-600 mt-2">Welcome — find answers to common questions and get quick help.</p>
+          <div className="px-8 pt-10 pb-4">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-sky-800">Help & FAQ</h2>
+            <p className="text-sm text-sky-700 mt-2">Welcome — find answers to common questions and get quick help.</p>
           </div>
 
           {/* Scrollable content area */}
-          <div className="p-8 max-h-[70vh] overflow-auto">
-            <Help showReturn={false} />
+          <div className="p-6 md:p-8 max-h-[75vh] overflow-auto">
+            <HelpFAQList />
           </div>
         </div>
       </div>
