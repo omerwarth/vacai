@@ -9,8 +9,8 @@ type HelpModalProps = {
 
 export default function Help({ showReturn = true }: { showReturn?: boolean }) {
   return (
-    <main className="min-h-screen bg-gray-50 py-20 px-4">
-      <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow relative">
+    <main className="min-h-screen bg-gradient-to-b from-white to-sky-50 py-20 px-4">
+      <div className="max-w-4xl mx-auto p-8 rounded-2xl shadow relative bg-gradient-to-br from-white to-sky-50/60 border border-sky-100">
         {/* Top-right return link for when this is rendered as a standalone page */}
         {showReturn && (
           <a
@@ -22,25 +22,44 @@ export default function Help({ showReturn = true }: { showReturn?: boolean }) {
           </a>
         )}
 
-        <h1 className="text-3xl font-bold mb-4">Help & FAQ</h1>
-        <p className="text-gray-700 mb-6">
-          Welcome to the help page. Here you can find answers to common questions about using VACAI.
-        </p>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-3xl font-extrabold text-sky-700">Help & FAQ</h1>
+          <div className="inline-flex items-center gap-3">
+            <span className="inline-block w-3 h-3 rounded-full bg-sky-600 shadow-sm" aria-hidden="true"></span>
+            <span className="text-sm text-sky-700 font-medium">VACAI Help</span>
+          </div>
+        </div>
+        <p className="text-slate-700 mb-6">Welcome to the help page. Here you can find answers to common questions about using VACAI.</p>
 
         <section className="space-y-4">
-          <details className="p-4 border rounded">
-            <summary className="font-medium">How do I start planning a trip?</summary>
-            <p className="mt-2 text-gray-600">Click the "Start Planning Your Journey" button on the homepage or dashboard to begin.</p>
+          <details className="border rounded overflow-hidden">
+            <summary className="flex items-center justify-between px-4 py-3 bg-sky-50 hover:bg-sky-100 cursor-pointer font-medium">
+              <span>How do I start planning a trip?</span>
+              <svg className="w-4 h-4 text-sky-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </summary>
+            <div className="px-4 py-4 bg-white">
+              <p className="text-gray-700">Click the "Start Planning Your Journey" button on the homepage or dashboard to begin.</p>
+            </div>
           </details>
 
-          <details className="p-4 border rounded">
-            <summary className="font-medium">How do I sign out?</summary>
-            <p className="mt-2 text-gray-600">Open the Profile menu in the top-right and click "Sign Out".</p>
+          <details className="border rounded overflow-hidden">
+            <summary className="flex items-center justify-between px-4 py-3 bg-rose-50 hover:bg-rose-100 cursor-pointer font-medium">
+              <span>How do I sign out?</span>
+              <svg className="w-4 h-4 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </summary>
+            <div className="px-4 py-4 bg-white">
+              <p className="text-gray-700">Open the Profile menu in the top-right and click "Sign Out".</p>
+            </div>
           </details>
 
-          <details className="p-4 border rounded">
-            <summary className="font-medium">Still need help?</summary>
-            <p className="mt-2 text-gray-600">Contact support at <a className="text-sky-600 underline" href="mailto:support@vacai.example">support@vacai.example</a>.</p>
+          <details className="border rounded overflow-hidden">
+            <summary className="flex items-center justify-between px-4 py-3 bg-emerald-50 hover:bg-emerald-100 cursor-pointer font-medium">
+              <span>Still need help?</span>
+              <svg className="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </summary>
+            <div className="px-4 py-4 bg-white">
+              <p className="text-gray-700">Contact support at <a className="text-emerald-700 font-semibold underline" href="mailto:support@vacai.example">support@vacai.example</a>.</p>
+            </div>
           </details>
         </section>
       </div>
