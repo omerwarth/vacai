@@ -39,7 +39,7 @@ export default function Dashboard({ user }: DashboardProps) {
   const [selectedProfile, setSelectedProfile] = useState<TravelerProfile | null>(null);
   const [showJourneyPlanner, setShowJourneyPlanner] = useState(false);
 
-  // Vacation destination images for carousel
+  // Vacation destination images for carousel (still used by ImageCarousel)
   const vacationImages = [
     '/pexels-pixabay-208701.jpg',
     '/pexels-pixabay-38238.jpg',
@@ -50,6 +50,17 @@ export default function Dashboard({ user }: DashboardProps) {
     '/pexels-recalmedia-60217.jpg',
     '/pexels-jimmy-teoh-294331-1010657.jpg'
   ];
+
+  // helper to pick section background images cyclically from vacationImages
+  const getSectionBg = (index: number) => {
+    const img = vacationImages[index % vacationImages.length];
+    return {
+      backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.12)), url(${img})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+    } as React.CSSProperties;
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -132,26 +143,78 @@ export default function Dashboard({ user }: DashboardProps) {
 
   return (
     <>
+      <style>{`
+        /* subtle fade-in for sections */
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+          animation: fadeInUp 700ms ease both;
+        }
+
+        /* gentle button hover-bounce */
+        @keyframes hoverPop {
+          0% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-6px) scale(1.02); }
+          100% { transform: translateY(0) scale(1); }
+        }
+        .btn-hover-pop:hover {
+          animation: hoverPop 400ms ease;
+        }
+
+        /* parallax-ish background movement for hero */
+        .parallax-bg {
+          transform: translateZ(0);
+          will-change: transform;
+        }
+
+        /* subtle glass card backdrop blur for readability */
+        .glass-card {
+          background: rgba(255,255,255,0.64);
+          backdrop-filter: blur(6px);
+        }
+
+        /* make section images slightly zoom on hover for a lively feel (non-intrusive) */
+        .section-bg-zoom { transition: transform 14s linear; transform-origin: center; }
+        .section:hover .section-bg-zoom { transform: scale(1.06); transition-duration: 10s; }
+
+        /* small pill dot for icon accent */
+        .accent-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 9999px;
+        }
+
+        /* keep dropdown profile accessible on hover for keyboard users too */
+        .profile-dropdown:focus-within > .dropdown-menu,
+        .profile-dropdown:hover > .dropdown-menu {
+          display: block;
+        }
+      `}</style>
+
       {/* Journey Planner Component */}
       {showJourneyPlanner && (
         <JourneyPlanner onBack={() => setShowJourneyPlanner(false)} />
       )}
       
       {!showJourneyPlanner && (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-100">
+      <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-100 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             {/* Logo */}
             <div className="flex items-center">
-              <div className="font-bold text-2xl tracking-tight" style={{ color: '#0070AC' }}>
-                Capgemini<span className="text-3xl leading-none">●</span>
+              <div className="font-extrabold text-2xl tracking-tight text-sky-700 flex items-center gap-3">
+                <div className="text-3xl">VACAI</div>
+                <div className="text-xl">🌍</div>
+                <span className="text-sm font-medium text-gray-500 ml-2">Plan • Dream • Go</span>
               </div>
             </div>
             
             {/* Navigation */}
-            <nav className="hidden md:flex items-center space-x-8">
+            <nav className="hidden md:flex items-center space-x-6">
               <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">Help/FAQ</a>
               <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">
                 Notifications
@@ -159,11 +222,11 @@ export default function Dashboard({ user }: DashboardProps) {
               <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">Saved</a>
               <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">Settings</a>
               <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">Contact</a>
-              <div className="relative group">
-                <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border border-gray-200 hover:border-gray-300 hover:shadow-sm">
+              <div className="relative group profile-dropdown">
+                <button className="bg-white/90 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border border-gray-200 hover:border-gray-300 hover:shadow-sm">
                   Profile
                 </button>
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 hidden group-hover:block z-50">
+                <div className="dropdown-menu absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 hidden z-50">
                   <div className="py-2">
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="text-sm font-medium text-gray-900">{user.name || 'User'}</p>
@@ -183,65 +246,74 @@ export default function Dashboard({ user }: DashboardProps) {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="py-24 px-4 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0070AC 0%, #005a8b 100%)' }}>
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3C/g%3E%3C/svg%3E")`,
-            backgroundSize: '40px 40px'
-          }}></div>
-        </div>
-        
+      {/* Hero Section - Parallax Beach Sunrise */}
+      <section
+        className="py-28 px-4 relative overflow-hidden section fade-in"
+        style={{
+          ...getSectionBg(0),
+          minHeight: '420px',
+        }}
+      >
+        {/* Decorative overlay shapes */}
+        <div className="absolute inset-0 parallax-bg section-bg-zoom" aria-hidden="true" style={{ opacity: 0.18 }}></div>
+
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
+          <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-4 leading-tight drop-shadow-lg">
             Plan Your Perfect Vacation
-            <span className="block text-4xl md:text-5xl mt-2 text-blue-100">with AI</span>
+            <span className="block text-4xl md:text-5xl mt-2 text-blue-100 font-light">With VACAI</span>
           </h1>
-          <p className="text-xl md:text-2xl text-blue-100 mb-10 max-w-3xl mx-auto leading-relaxed font-light">
-            Smart Recommendations. Real-Time Details. Personalized Just For You
+          <p className="text-lg md:text-xl text-blue-50 mb-8 max-w-3xl mx-auto leading-relaxed opacity-95">
+            Smart Recommendations. Real-Time Details. Personalized Just For You.
           </p>
-          <button
-            onClick={handleStartPlanning}
-            className="bg-white text-gray-900 px-10 py-4 rounded-xl text-lg font-semibold hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 hover:scale-105"
-          >
-            Start Planning Your Journey
-          </button>
+          <div className="flex items-center justify-center gap-4">
+            <button
+              onClick={handleStartPlanning}
+              className="btn-hover-pop bg-white text-slate-900 px-8 py-3 rounded-full text-lg font-semibold hover:bg-gray-100 transition-all duration-300 shadow-2xl transform hover:-translate-y-0.5"
+            >
+              Start Planning Your Journey
+            </button>
+            <button
+              onClick={handleTestOnboarding}
+              className="btn-hover-pop bg-sky-600 text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-sky-700 transition-all duration-300 shadow-lg transform hover:-translate-y-0.5"
+            >
+              Quick Preferences ✨
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* Continue Existing Plan Section */}
+      {/* Continue Existing Plan Section (Beach -> City mix) */}
       {hasExistingPlan && (
-        <section className="py-20 px-4">
+        <section className="py-20 px-4 section fade-in" style={getSectionBg(1)}>
           <div className="max-w-7xl mx-auto">
-            <div className="rounded-2xl p-8 md:p-12 shadow-xl border border-gray-200 bg-white relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0070AC 0%, #005a8b 100%)' }}>
+            <div className="rounded-2xl p-8 md:p-12 shadow-xl border border-gray-200 bg-gradient-to-r from-white/70 to-white/30 relative overflow-hidden glass-card section">
               {/* Background accent */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -translate-y-32 translate-x-32"></div>
+              <div className="absolute top-0 right-0 w-72 h-72 bg-white opacity-6 rounded-full -translate-y-24 translate-x-24"></div>
               
               <div className="flex flex-col lg:flex-row items-center gap-12 relative z-10">
                 <div className="lg:w-1/2 text-center lg:text-left">
-                  <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-6">
+                  <div className="inline-flex items-center px-4 py-2 bg-white/80 text-sky-700 rounded-full text-sm font-medium mb-6 shadow-sm">
                     <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     Plan in Progress
                   </div>
-                  <h2 className="text-4xl font-bold text-white mb-6 leading-tight">
+                  <h2 className="text-4xl font-bold text-slate-900 mb-6 leading-tight">
                     Continue Your Journey?
                   </h2>
-                  <p className="text-blue-100 mb-8 text-lg leading-relaxed max-w-md">
-                    It looks like you already have a vacation plan in progress. Continue where you left off or start fresh with new destinations.
+                  <p className="text-slate-700 mb-8 text-lg leading-relaxed max-w-md">
+                    It looks like you have a saved plan. Pick up where you left off, or start a new adventure mixing beaches, cities, and nature.
                   </p>
-                  <div className="space-y-4">
+                  <div className="space-y-4 sm:space-y-0 sm:flex sm:gap-4">
                     <button
                       onClick={handleContinuePlanning}
-                      className="block w-full lg:w-auto bg-white text-gray-900 px-8 py-4 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                      className="block w-full sm:w-auto bg-white text-gray-900 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-300 shadow-lg transform hover:-translate-y-0.5 btn-hover-pop"
                     >
                       Continue Planning
                     </button>
                     <button
                       onClick={handleDeletePlan}
-                      className="block w-full lg:w-auto bg-transparent border-2 border-white text-white px-8 py-4 rounded-xl font-semibold hover:bg-white hover:text-gray-900 transition-all duration-300"
+                      className="block w-full sm:w-auto bg-transparent border-2 border-white text-white px-8 py-3 rounded-xl font-semibold hover:bg-white hover:text-gray-900 transition-all duration-300"
                     >
                       Start Fresh
                     </button>
@@ -265,43 +337,42 @@ export default function Dashboard({ user }: DashboardProps) {
         </section>
       )}
 
-      {/* Traveler Profile Management Section */}
-      <section className="py-20 px-4 bg-gray-50">
+      {/* Traveler Profile Management Section (Nature background) */}
+      <section className="py-20 px-4 section fade-in" style={getSectionBg(2)}>
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <div className="text-center mb-12 relative z-10">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 drop-shadow-md">
               Manage Travel Profiles
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Create profiles for family members, friends, or travel companions and set their preferences
+            <p className="text-lg text-blue-100 max-w-3xl mx-auto leading-relaxed">
+              Create profiles for family members, friends, or travel companions and set their travel preferences.
             </p>
           </div>
           
-          <TravelerProfileManager
-            onProfileSelect={(profile) => {
-              setSelectedProfile(profile);
-              console.log('Selected profile for planning:', profile);
-            }}
-          />
+          <div className="rounded-2xl p-8 md:p-12 shadow-xl border border-gray-200 bg-white/70 relative overflow-hidden glass-card">
+            <TravelerProfileManager
+              onProfileSelect={(profile) => {
+                setSelectedProfile(profile);
+                console.log('Selected profile for planning:', profile);
+              }}
+            />
+          </div>
         </div>
       </section>
 
-      {/* How VACAI Works Section */}
-      <section className="py-20 px-4 bg-white">
+      {/* How VACAI Works Section (City skyline background) */}
+      <section className="py-20 px-4 section fade-in" style={getSectionBg(3)}>
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <div className="text-center mb-16 relative z-10">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
               How VACAI Works
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Our AI-powered platform makes vacation planning effortless and personalized
+            <p className="text-lg text-blue-100 max-w-3xl mx-auto leading-relaxed">
+              Our AI-powered platform blends recommendations from across ecosystems to design the perfect trip for you.
             </p>
           </div>
           
-          <div className="rounded-2xl p-8 md:p-12 shadow-xl border border-gray-200 bg-white relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0070AC 0%, #005a8b 100%)' }}>
-            {/* Background accent */}
-            <div className="absolute bottom-0 left-0 w-96 h-96 bg-white opacity-5 rounded-full translate-y-48 -translate-x-48"></div>
-            
+          <div className="rounded-2xl p-8 md:p-12 shadow-xl border border-gray-200 bg-gradient-to-r from-white/70 to-white/30 relative overflow-hidden glass-card">
             <div className="flex flex-col lg:flex-row items-center gap-12 relative z-10">
               <div className="lg:w-1/2 order-2 lg:order-1">
                 <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-white border-opacity-20">
@@ -318,45 +389,45 @@ export default function Dashboard({ user }: DashboardProps) {
               <div className="lg:w-1/2 space-y-8 order-1 lg:order-2">
                 <div className="space-y-6">
                   <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-bold text-sm">1</span>
+                    <div className="flex-shrink-0 w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                      <span className="text-sky-700 font-bold text-sm">1</span>
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-white mb-2">
+                      <h3 className="text-2xl font-bold text-slate-900 mb-2">
                         Need to plan a trip?
                       </h3>
-                      <p className="text-blue-100 text-lg">Tell us your preferences and dream destinations</p>
+                      <p className="text-slate-700 text-lg">Tell us your preferences and dream destinations.</p>
                     </div>
                   </div>
                   
                   <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-bold text-sm">2</span>
+                    <div className="flex-shrink-0 w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                      <span className="text-sky-700 font-bold text-sm">2</span>
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-white mb-2">
+                      <h3 className="text-2xl font-bold text-slate-900 mb-2">
                         No idea where to start?
                       </h3>
-                      <p className="text-blue-100 text-lg">Our AI analyzes millions of destinations and reviews</p>
+                      <p className="text-slate-700 text-lg">Our Al analyzes millions of destinations and reviews.</p>
                     </div>
                   </div>
                   
                   <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-bold text-sm">3</span>
+                    <div className="flex-shrink-0 w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                      <span className="text-sky-700 font-bold text-sm">3</span>
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-white mb-2">
+                      <h3 className="text-2xl font-bold text-slate-900 mb-2">
                         Get personalized recommendations
                       </h3>
-                      <p className="text-blue-100 text-lg mb-6">Receive curated itineraries tailored just for you</p>
+                      <p className="text-slate-700 text-lg mb-6">Receive curated itineraries tailored just for you.</p>
                     </div>
                   </div>
                 </div>
                 
                 <button
                   onClick={handleStartPlanning}
-                  className="bg-white text-gray-900 px-10 py-4 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                  className="bg-white text-gray-900 px-8 py-3 rounded-full font-semibold hover:bg-gray-50 transition-all duration-300 shadow-lg btn-hover-pop"
                 >
                   Start Your Journey
                 </button>
@@ -366,8 +437,8 @@ export default function Dashboard({ user }: DashboardProps) {
         </div>
       </section>
 
-      {/* Planning History Section */}
-      <section className="py-20 px-4 bg-gray-50">
+      {/* Planning History Section (subtle nature overlay) */}
+      <section className="py-20 px-4 bg-gray-50 section fade-in">
         <div className="max-w-5xl mx-auto text-center">
           <div className="mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -382,13 +453,13 @@ export default function Dashboard({ user }: DashboardProps) {
             {/* Background pattern */}
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0" style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230070AC' fill-opacity='0.4'%3E%3Cpath d='M30 30c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230070AC' fill-opacity='0.15'%3E%3Cpath d='M30 30c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
                 backgroundSize: '60px 60px'
               }}></div>
             </div>
             
             <div className="relative z-10">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-8">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-50 rounded-full mb-8">
                 <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -403,7 +474,7 @@ export default function Dashboard({ user }: DashboardProps) {
               
               <button
                 onClick={handleViewHistory}
-                className="inline-flex items-center px-8 py-4 rounded-xl font-semibold text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 hover:scale-105"
+                className="inline-flex items-center px-8 py-3 rounded-xl font-semibold text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 hover:scale-105"
                 style={{ background: 'linear-gradient(135deg, #0070AC 0%, #005a8b 100%)' }}
               >
                 <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -418,7 +489,7 @@ export default function Dashboard({ user }: DashboardProps) {
 
       {/* Debug Section - Remove in production */}
       {process.env.NODE_ENV === 'development' && (
-        <section className="py-12 px-4 bg-gray-100 border-t border-gray-200">
+        <section className="py-12 px-4 bg-gray-100 border-t border-gray-200 section fade-in">
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
               <h3 className="text-lg font-semibold mb-4 text-gray-900 flex items-center">
@@ -486,7 +557,7 @@ export default function Dashboard({ user }: DashboardProps) {
       
       {/* Profile Manager Debug Section */}
       {process.env.NODE_ENV === 'development' && showProfileManager && (
-        <section className="py-12 px-4 bg-blue-50 border-t border-blue-200">
+        <section className="py-12 px-4 bg-blue-50 border-t border-blue-200 section fade-in">
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-xl p-6 shadow-sm border border-blue-200">
               <h3 className="text-lg font-semibold mb-4 text-gray-900 flex items-center">
