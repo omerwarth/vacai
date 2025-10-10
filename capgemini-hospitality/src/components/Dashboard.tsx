@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth0, User as Auth0User } from '@auth0/auth0-react';
 import { apiService, TravelerProfile } from '@/config/api';
 import ImageCarousel from './ImageCarousel';
@@ -30,10 +31,12 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ user }: DashboardProps) {
+  const router = useRouter();
   const { logout } = useAuth0();
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [hasExistingPlan, setHasExistingPlan] = useState(false);
   
@@ -116,8 +119,12 @@ export default function Dashboard({ user }: DashboardProps) {
   };
 
   const handleViewHistory = () => {
-    // Implement view planning history
-    console.log('Viewing planning history...');
+    // Navigate to planning history page
+    try {
+      router.push('/planning-history');
+    } catch (e) {
+      console.log('Viewing planning history...');
+    }
   };
 
   // Onboarding handlers
@@ -234,7 +241,12 @@ export default function Dashboard({ user }: DashboardProps) {
                 Notifications
               </button>
               <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">Saved</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">Settings</a>
+              <button
+                onClick={(e) => { e.preventDefault(); setShowSettingsModal(true); }}
+                className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer"
+              >
+                Settings
+              </button>
               <button
                 onClick={(e) => { e.preventDefault(); setShowContactModal(true); }}
                 className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer"
