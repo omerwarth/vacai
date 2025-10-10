@@ -8,6 +8,7 @@ import OnboardingModal from './OnboardingModal';
 import SurveyResults from './SurveyResults';
 import TravelerProfileManager from './TravelerProfileManager';
 import JourneyPlanner from './JourneyPlanner';
+import HelpModal from './HelpModal';
 
 interface User {
   id: string;
@@ -28,6 +29,7 @@ interface DashboardProps {
 
 export default function Dashboard({ user }: DashboardProps) {
   const { logout } = useAuth0();
+  const [showHelpModal, setShowHelpModal] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [hasExistingPlan, setHasExistingPlan] = useState(false);
   
@@ -215,7 +217,12 @@ export default function Dashboard({ user }: DashboardProps) {
             
             {/* Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
-              <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">Help/FAQ</a>
+              <button
+                onClick={(e) => { e.preventDefault(); setShowHelpModal(true); }}
+                className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline"
+              >
+                Help/FAQ
+              </button>
               <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">
                 Notifications
               </a>
@@ -601,6 +608,8 @@ export default function Dashboard({ user }: DashboardProps) {
           onClose={handleSurveyResultsClose}
         />
       )}
+      {/* Help Modal (kept inside components) */}
+      <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
         </div>
       )}
     </>
