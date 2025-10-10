@@ -37,6 +37,24 @@ export default function PlanningHistory() {
     setPlans(loadPlans());
   }, []);
 
+  // compute filtered plans based on selected period
+  const filteredPlans = plans.filter((plan) => {
+    if (period === 'all') return true;
+    const planDate = new Date(plan.date).getTime();
+    const now = Date.now();
+    let cutoff = now;
+    if (period === 'day') cutoff = now - 24 * 60 * 60 * 1000;
+    if (period === 'week') cutoff = now - 7 * 24 * 60 * 60 * 1000;
+    if (period === 'month') cutoff = now - 30 * 24 * 60 * 60 * 1000;
+    if (period === 'year') cutoff = now - 365 * 24 * 60 * 60 * 1000;
+    if (period === '2y') cutoff = now - 2 * 365 * 24 * 60 * 60 * 1000;
+    if (period === '3y') cutoff = now - 3 * 365 * 24 * 60 * 60 * 1000;
+    if (period === '4y') cutoff = now - 4 * 365 * 24 * 60 * 60 * 1000;
+    if (period === '5y') cutoff = now - 5 * 365 * 24 * 60 * 60 * 1000;
+    if (period === '10y') cutoff = now - 10 * 365 * 24 * 60 * 60 * 1000;
+    return planDate >= cutoff;
+  });
+
   return (
     <div className="max-w-6xl mx-auto py-12 px-4">
       <div className="mb-6 flex items-center justify-between">
@@ -100,26 +118,20 @@ export default function PlanningHistory() {
           <p className="text-sm text-gray-600 mb-6">Start planning a trip and your plans will appear here. You can save plans to revisit later.</p>
           {/* no actions in empty state; use header Refresh or navigate home */}
         </div>
+        ) : filteredPlans.length === 0 ? (
+        <div className="bg-white rounded-2xl shadow border border-gray-100 p-10 text-center">
+          <svg className="mx-auto mb-4 w-16 h-16 text-sky-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M8 3h8l1 4H7l1-4z" />
+          </svg>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">No plans match the selected period</h2>
+          <p className="text-sm text-gray-600 mb-6">Try a different time period or add a new plan.</p>
+          <div className="flex items-center justify-center gap-3">
+            <button onClick={() => setPeriod('all')} className="px-4 py-2 rounded-lg bg-sky-600 text-white">Show All</button>
+          </div>
+        </div>
         ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {plans
-            .filter((plan) => {
-              if (period === 'all') return true;
-              const planDate = new Date(plan.date).getTime();
-              const now = Date.now();
-              let cutoff = now;
-              if (period === 'day') cutoff = now - 24 * 60 * 60 * 1000;
-              if (period === 'week') cutoff = now - 7 * 24 * 60 * 60 * 1000;
-              if (period === 'month') cutoff = now - 30 * 24 * 60 * 60 * 1000;
-              if (period === 'year') cutoff = now - 365 * 24 * 60 * 60 * 1000;
-              if (period === '2y') cutoff = now - 2 * 365 * 24 * 60 * 60 * 1000;
-              if (period === '3y') cutoff = now - 3 * 365 * 24 * 60 * 60 * 1000;
-              if (period === '4y') cutoff = now - 4 * 365 * 24 * 60 * 60 * 1000;
-              if (period === '5y') cutoff = now - 5 * 365 * 24 * 60 * 60 * 1000;
-              if (period === '10y') cutoff = now - 10 * 365 * 24 * 60 * 60 * 1000;
-              return planDate >= cutoff;
-            })
-            .map((plan) => (
+          {filteredPlans.map((plan) => (
             <article key={plan.id} className="relative bg-white border border-sky-50 rounded-2xl p-5 shadow-sm hover:shadow-lg hover:ring-1 hover:ring-sky-100 transition-shadow duration-200">
               <div className="flex items-start justify-between">
                 <div>
