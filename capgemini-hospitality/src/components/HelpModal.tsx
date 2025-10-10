@@ -1,7 +1,6 @@
-'use client';
+ 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Help from './Help';
 
 type HelpModalProps = {
@@ -10,7 +9,6 @@ type HelpModalProps = {
 };
 
 export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
-  const router = useRouter();
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -24,26 +22,16 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true"></div>
+      {/* Backdrop with subtle blur */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} aria-hidden="true"></div>
 
       <div className="relative max-w-4xl w-full mx-4">
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden relative">
-          {/* Fixed top-right controls so they're always visible */}
-          <div className="absolute top-3 right-3 flex items-center gap-2">
-            <button
-              onClick={() => {
-                onClose();
-                router.push('/');
-              }}
-              className="bg-sky-50 text-sky-700 hover:bg-sky-100 px-3 py-1 rounded-md text-sm font-medium border border-sky-100 shadow-sm"
-              aria-label="Return to main menu"
-            >
-              Main menu
-            </button>
-
+        <div className="bg-white/95 rounded-2xl shadow-2xl overflow-hidden relative border border-gray-100 glass-card max-h-[90vh] w-full">
+          {/* Fixed top-right controls styled like site buttons */}
+          <div className="absolute top-4 right-4 z-20">
             <button
               onClick={onClose}
-              className="bg-white text-gray-600 hover:bg-gray-50 px-2 py-1 rounded-md shadow-sm"
+              className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white text-gray-700 shadow-sm border border-gray-200"
               aria-label="Close help dialog"
               title="Close"
             >
@@ -51,11 +39,15 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
             </button>
           </div>
 
-          <div className="p-6 pt-12">
-            <h2 className="text-lg font-semibold">Help & FAQ</h2>
-            <div className="mt-4">
-              <Help />
-            </div>
+          {/* Header */}
+          <div className="px-8 pt-12 pb-4 border-b border-gray-100">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900">Help & FAQ</h2>
+            <p className="text-sm text-gray-600 mt-2">Welcome — find answers to common questions and get quick help.</p>
+          </div>
+
+          {/* Scrollable content area */}
+          <div className="p-8 max-h-[70vh] overflow-auto">
+            <Help />
           </div>
         </div>
       </div>
