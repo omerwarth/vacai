@@ -9,6 +9,7 @@ import SurveyResults from './SurveyResults';
 import TravelerProfileManager from './TravelerProfileManager';
 import JourneyPlanner from './JourneyPlanner';
 import { HelpModal } from './Help';
+import { ContactModal } from './Contact';
 
 interface User {
   id: string;
@@ -30,6 +31,7 @@ interface DashboardProps {
 export default function Dashboard({ user }: DashboardProps) {
   const { logout } = useAuth0();
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [hasExistingPlan, setHasExistingPlan] = useState(false);
   
@@ -228,7 +230,12 @@ export default function Dashboard({ user }: DashboardProps) {
               </a>
               <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">Saved</a>
               <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">Settings</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">Contact</a>
+              <button
+                onClick={(e) => { e.preventDefault(); setShowContactModal(true); }}
+                className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline"
+              >
+                Contact
+              </button>
               <div className="relative group profile-dropdown">
                 <button className="bg-white/90 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border border-gray-200 hover:border-gray-300 hover:shadow-sm">
                   Profile
@@ -609,7 +616,8 @@ export default function Dashboard({ user }: DashboardProps) {
         />
       )}
       {/* Help Modal (kept inside components) */}
-      <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
+  <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
+  <ContactModal isOpen={showContactModal} onClose={() => setShowContactModal(false)} />
         </div>
       )}
     </>
