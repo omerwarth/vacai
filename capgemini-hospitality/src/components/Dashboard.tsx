@@ -10,6 +10,7 @@ import TravelerProfileManager from './TravelerProfileManager';
 import JourneyPlanner from './JourneyPlanner';
 import { HelpModal } from './Help';
 import { ContactModal } from './Contact';
+import { NotificationModal } from './Notification';
 
 interface User {
   id: string;
@@ -32,6 +33,7 @@ export default function Dashboard({ user }: DashboardProps) {
   const { logout } = useAuth0();
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [hasExistingPlan, setHasExistingPlan] = useState(false);
   
@@ -225,9 +227,12 @@ export default function Dashboard({ user }: DashboardProps) {
               >
                 Help/FAQ
               </button>
-              <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">
+              <button
+                onClick={(e) => { e.preventDefault(); setShowNotificationModal(true); }}
+                className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline"
+              >
                 Notifications
-              </a>
+              </button>
               <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">Saved</a>
               <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">Settings</a>
               <button
@@ -618,6 +623,7 @@ export default function Dashboard({ user }: DashboardProps) {
       {/* Help Modal (kept inside components) */}
   <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
   <ContactModal isOpen={showContactModal} onClose={() => setShowContactModal(false)} />
+  <NotificationModal isOpen={showNotificationModal} onClose={() => setShowNotificationModal(false)} />
         </div>
       )}
     </>
