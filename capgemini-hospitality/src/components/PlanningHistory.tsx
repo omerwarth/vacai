@@ -8,6 +8,8 @@ type Plan = {
   title: string;
   date: string;
   status: "completed" | "in-progress" | "draft";
+  price?: number;
+  location?: string;
 };
 
 const SAVED_PLANS_KEY = "vacation-plans";
@@ -17,7 +19,14 @@ function loadPlans(): Plan[] {
     const raw = localStorage.getItem(SAVED_PLANS_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed;
+    if (Array.isArray(parsed)) {
+      // normalize prices to numbers and ensure location exists
+      return parsed.map((p) => ({
+        ...p,
+        price: p && typeof p.price !== 'number' ? Number(p.price) || 0 : p.price || 0,
+        location: p && p.location ? String(p.location) : ''
+      }));
+    }
   } catch (e) {
     // ignore
   }
@@ -31,6 +40,12 @@ export default function PlanningHistory() {
   const [formTitle, setFormTitle] = useState('');
   const [formDate, setFormDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [formStatus, setFormStatus] = useState<Plan['status']>('in-progress');
+  const [formPrice, setFormPrice] = useState<number | string>(0);
+  const [formLocation, setFormLocation] = useState('');
+  const [locationQuery, setLocationQuery] = useState('');
+  const [priceThreshold, setPriceThreshold] = useState<number | 'all'>('all');
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [activePlan, setActivePlan] = useState<Plan | null>(null);
 
   useEffect(() => {
     // Load from localStorage on mount
@@ -55,6 +70,18 @@ export default function PlanningHistory() {
     return planDate >= cutoff;
   });
 
+  // apply search filter (case-insensitive substring) against title OR location
+  const visiblePlans = filteredPlans.filter((plan) => {
+    if (!locationQuery) return true;
+    const q = locationQuery.toLowerCase();
+    const inTitle = plan.title && plan.title.toLowerCase().includes(q);
+    const inLocation = plan.location && plan.location.toLowerCase().includes(q);
+    const matchesText = Boolean(inTitle || inLocation);
+    if (!matchesText) return false;
+    if (priceThreshold === 'all') return true;
+    return (plan.price || 0) >= priceThreshold;
+  });
+
   return (
     <div className="max-w-6xl mx-auto py-12 px-4">
       <div className="mb-6 flex items-center justify-between">
@@ -68,14 +95,14 @@ export default function PlanningHistory() {
           <div>
             <h1 className="text-3xl font-extrabold text-sky-700">Planning History</h1>
             <p className="text-sm text-sky-600 mt-1">Review your past and in-progress vacation plans.</p>
+            <p className="text-sm text-sky-700 font-semibold mt-2">Total Plans: {visiblePlans.length}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <label className="text-sm text-sky-600">Show:</label>
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value as any)}
-            className="text-sm rounded-md border border-gray-200 px-3 py-2 bg-white"
+            className="text-sm rounded-md border border-green-200 px-3 py-2 bg-green-50 text-green-700"
           >
             <option value="day">Day Ago</option>
             <option value="week">Week Ago</option>
@@ -88,21 +115,40 @@ export default function PlanningHistory() {
             <option value="10y">10 Years Ago</option>
             <option value="all">All Time</option>
           </select>
+          <select
+            value={priceThreshold === 'all' ? 'all' : String(priceThreshold)}
+            onChange={(e) => setPriceThreshold(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+            className="ml-2 text-sm rounded-md border border-green-200 px-3 py-2 bg-green-50 text-green-700"
+          >
+            <option value="1">$1</option>
+            <option value="10">$10</option>
+            <option value="100">$100</option>
+            <option value="500">$500</option>
+            <option value="1000">$1,000</option>
+            <option value="10000">$10,000</option>
+            <option value="all">All</option>
+          </select>
+          <input
+            placeholder="Search title or location"
+            value={locationQuery}
+            onChange={(e) => setLocationQuery(e.target.value)}
+            className="ml-2 text-sm rounded-md border border-green-200 px-3 py-2 bg-green-50 text-green-700"
+          />
           <button
             onClick={() => window.location.assign('/')}
-            className="text-sm px-3 py-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
+            className="text-sm px-3 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700"
           >
             Back to Home
           </button>
           <button
             onClick={() => setShowAddForm(true)}
-            className="text-sm px-3 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 text-gray-700"
+            className="text-sm px-3 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700 min-w-[132px]"
           >
             Add Sample Plan
           </button>
           <button
             onClick={() => setPlans(loadPlans())}
-            className="text-sm px-3 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700"
+            className="text-sm px-3 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700 min-w-[132px]"
           >
             Refresh
           </button>
@@ -118,25 +164,25 @@ export default function PlanningHistory() {
           <p className="text-sm text-gray-600 mb-6">Start planning a trip and your plans will appear here. You can save plans to revisit later.</p>
           {/* no actions in empty state; use header Refresh or navigate home */}
         </div>
-        ) : filteredPlans.length === 0 ? (
+  ) : visiblePlans.length === 0 ? (
         <div className="bg-white rounded-2xl shadow border border-gray-100 p-10 text-center">
           <svg className="mx-auto mb-4 w-16 h-16 text-sky-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M8 3h8l1 4H7l1-4z" />
           </svg>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">No plans match the selected period</h2>
-          <p className="text-sm text-gray-600 mb-6">Try a different time period or add a new plan.</p>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">No plans match the selected filters</h2>
+          <p className="text-sm text-gray-600 mb-6">Try a different time period, clear the location search, or add a new plan.</p>
           <div className="flex items-center justify-center gap-3">
             <button onClick={() => setPeriod('all')} className="px-4 py-2 rounded-lg bg-sky-600 text-white">Show All</button>
           </div>
         </div>
         ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPlans.map((plan) => (
+          {visiblePlans.map((plan) => (
             <article key={plan.id} className="relative bg-white border border-sky-50 rounded-2xl p-5 shadow-sm hover:shadow-lg hover:ring-1 hover:ring-sky-100 transition-shadow duration-200">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-sky-800">{plan.title}</h3>
-                  <p className="text-sm text-sky-500 mt-1">{new Date(plan.date).toLocaleDateString()}</p>
+            <h3 className="text-lg font-semibold text-sky-800">{plan.title}</h3>
+            {plan.location ? <div className="text-sm text-sky-600 mt-1">{plan.location}</div> : null}
                 </div>
                 <div className="text-right">
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
@@ -151,18 +197,47 @@ export default function PlanningHistory() {
 
               <div className="mt-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <button className="text-sm px-3 py-2 rounded-md bg-gradient-to-r from-sky-600 to-sky-700 text-white hover:opacity-95">Open</button>
+                  <button onClick={() => { setActivePlan(plan); setShowDetailModal(true); }} className="text-sm px-3 py-2 rounded-md bg-gradient-to-r from-sky-600 to-sky-700 text-white hover:opacity-95">Open</button>
                   <button onClick={() => {
                     // delete single plan
                     const updated = plans.filter(p => p.id !== plan.id);
                     localStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(updated));
                     setPlans(updated);
-                  }} className="text-sm px-3 py-2 rounded-md border border-gray-200 bg-white hover:bg-gray-50">Delete</button>
+                  }} className="text-sm px-3 py-2 rounded-md bg-sky-600 text-white hover:bg-sky-700">Delete</button>
                 </div>
-                <div className="text-sm text-gray-400">{new Date(plan.date).toLocaleString()}</div>
+                <div className="text-sm text-gray-400 flex items-center gap-3">
+                  <span>{new Date(plan.date).toLocaleDateString()}</span>
+                  <span className="text-sky-700 font-semibold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(plan.price || 0)}</span>
+                </div>
               </div>
             </article>
           ))}
+        </div>
+      )}
+      {/* Detail Modal */}
+      {showDetailModal && activePlan && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
+            <h3 className="text-xl font-semibold text-sky-800 mb-4">Plan Details</h3>
+            <div className="space-y-2 text-sm text-gray-700">
+              <div><strong>Title:</strong> {activePlan.title}</div>
+              <div><strong>Date:</strong> {new Date(activePlan.date).toLocaleString()}</div>
+              <div><strong>Location:</strong> {activePlan.location || '-'}</div>
+              <div><strong>Status:</strong> {activePlan.status}</div>
+              <div><strong>Price:</strong> {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(activePlan.price || 0)}</div>
+              <div className="break-all"><strong>ID:</strong> {activePlan.id}</div>
+            </div>
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button onClick={() => { setShowDetailModal(false); setActivePlan(null); }} className="px-4 py-2 rounded-md border border-sky-600 text-sky-600">Close</button>
+              <button onClick={() => {
+                const updated = plans.filter(p => p.id !== activePlan.id);
+                localStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(updated));
+                setPlans(updated);
+                setShowDetailModal(false);
+                setActivePlan(null);
+              }} className="px-4 py-2 rounded-md bg-red-600 text-white">Delete Plan</button>
+            </div>
+          </div>
         </div>
       )}
       {/* Add Plan Modal */}
@@ -177,6 +252,9 @@ export default function PlanningHistory() {
             <label className="block text-sm text-gray-700">Date</label>
             <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)} className="w-full mt-1 mb-3 px-3 py-2 border rounded-md" />
 
+            <label className="block text-sm text-gray-700">Location</label>
+            <input value={formLocation} onChange={(e) => setFormLocation(e.target.value)} className="w-full mt-1 mb-3 px-3 py-2 border rounded-md" />
+
             <label className="block text-sm text-gray-700">Status</label>
             <select value={formStatus} onChange={(e) => setFormStatus(e.target.value as Plan['status'])} className="w-full mt-1 mb-4 px-3 py-2 border rounded-md">
               <option value="in-progress">In-progress</option>
@@ -184,11 +262,14 @@ export default function PlanningHistory() {
               <option value="draft">Draft</option>
             </select>
 
+            <label className="block text-sm text-gray-700">Estimated Price (USD)</label>
+            <input type="number" value={String(formPrice)} onChange={(e) => setFormPrice(e.target.value)} className="w-full mt-1 mb-4 px-3 py-2 border rounded-md" />
+
             <div className="flex items-center justify-end gap-3">
-              <button onClick={() => setShowAddForm(false)} className="px-4 py-2 rounded-md border">Cancel</button>
+              <button onClick={() => setShowAddForm(false)} className="px-4 py-2 rounded-md border border-sky-600 text-sky-600">Cancel</button>
               <button onClick={() => {
                 const id = Date.now().toString();
-                const sample: Plan = { id, title: formTitle || 'New Plan', date: new Date(formDate).toISOString(), status: formStatus };
+                const sample: Plan = { id, title: formTitle || 'New Plan', date: new Date(formDate).toISOString(), status: formStatus, price: Number(formPrice) || 0, location: formLocation || '' };
                 const existing = loadPlans();
                 const updated = [sample, ...existing];
                 localStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(updated));
@@ -197,6 +278,7 @@ export default function PlanningHistory() {
                 setFormTitle('');
                 setFormDate(new Date().toISOString().slice(0,10));
                 setFormStatus('in-progress');
+                setFormLocation('');
               }} className="px-4 py-2 rounded-md bg-sky-600 text-white">Add Plan</button>
             </div>
           </div>
