@@ -142,13 +142,13 @@ export default function PlanningHistory() {
           </button>
           <button
             onClick={() => setShowAddForm(true)}
-            className="text-sm px-3 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700 min-w-[132px]"
+            className="text-sm px-3 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700 "
           >
             Add Sample Plan
           </button>
           <button
             onClick={() => setPlans(loadPlans())}
-            className="text-sm px-3 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700 min-w-[132px]"
+            className="text-sm px-3 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700 "
           >
             Refresh
           </button>

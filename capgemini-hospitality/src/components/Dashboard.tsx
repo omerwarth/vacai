@@ -506,7 +506,7 @@ export default function Dashboard({ user }: DashboardProps) {
               
               <button
                 onClick={handleViewHistory}
-                className="inline-flex items-center px-8 py-3 rounded-xl font-semibold text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 hover:scale-105"
+                className="inline-flex items-center px-8 py-3 rounded-xl font-semibold text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 hover:scale-105 cursor-pointer"
                 style={{ background: 'linear-gradient(135deg, #0070AC 0%, #005a8b 100%)' }}
               >
                 <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
