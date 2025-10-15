@@ -8,7 +8,6 @@ import OnboardingModal from './OnboardingModal';
 import SurveyResults from './SurveyResults';
 import TravelerProfileManager from './TravelerProfileManager';
 import JourneyPlanner from './JourneyPlanner';
-
 interface User {
   id: string;
   email: string;

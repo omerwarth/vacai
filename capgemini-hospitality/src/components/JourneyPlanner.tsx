@@ -81,20 +81,40 @@ function JourneyPlannerContent({ onBack }: JourneyPlannerProps) {
   );
 }
 
+
 export default function JourneyPlanner({ onBack }: JourneyPlannerProps) {
+
+  // in production thread id would be passed as a path parameter or something similar
+  // thread id is unique identifier of a chat allowing resuming of prev chats
+  const thread_id = "12345"
+  const API_URL = `http://127.0.0.1:8000/api/chat/${thread_id}`
   const runtime = useLocalRuntime(
     {
-      async *run({ messages: _messages }) {
-        // Simple mock implementation - replace with actual API call
-        yield {
-          content: [
-            {
-              type: "text",
-              text: "Hello! I'm your journey planning assistant. How can I help you plan your next trip?",
-            },
-          ],
-        };
+      async run({ messages, abortSignal }) {
+    // TODO replace with your own API
+    const result = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
+      // forward the messages in the chat to the API
+      body: JSON.stringify({
+        messages,
+      }),
+      // if the user hits the "cancel" button or escape keyboard key, cancel the request
+      signal: abortSignal,
+    });
+
+    const data = await result.json();
+    return {
+      content: [
+        {
+          type: "text",
+          text: data.text,
+        },
+      ],
+    };
+  },
     },
     {
       initialMessages: [],
