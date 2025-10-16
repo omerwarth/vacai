@@ -12,6 +12,7 @@ import JourneyPlanner from './JourneyPlanner';
 import { HelpModal } from './Help';
 import { ContactModal } from './Contact';
 import { NotificationModal } from './Notification';
+import { SavedPlansLink } from './SavedPlans';
 
 interface User {
   id: string;
@@ -240,7 +241,9 @@ export default function Dashboard({ user }: DashboardProps) {
               >
                 Notifications
               </button>
-              <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">Saved</a>
+              <SavedPlansLink className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer">
+                Saved
+              </SavedPlansLink>
               <button
                 onClick={(e) => { e.preventDefault(); setShowSettingsModal(true); }}
                 className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer"
