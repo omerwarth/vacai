@@ -109,7 +109,35 @@ export default function Settings() {
   const [showResetModal, setShowResetModal] = useState(false);
 
   useEffect(() => {
-    setSettings(loadSettings());
+    const loadedSettings = loadSettings();
+    setSettings(loadedSettings);
+    
+    // Apply theme immediately on component mount
+    const applyInitialTheme = (theme: string) => {
+      const html = document.documentElement;
+      const body = document.body;
+      
+      // Remove existing theme classes
+      html.classList.remove('theme-light', 'theme-dark', 'theme-auto');
+      body.classList.remove('bg-white', 'bg-gray-900', 'text-gray-900', 'text-white');
+      
+      // Apply theme class to html for CSS-based theming
+      html.classList.add(`theme-${theme}`);
+      
+      // Handle auto theme based on system preference
+      const isDarkMode = theme === 'dark' || 
+        (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      
+      if (isDarkMode) {
+        html.classList.add('dark');
+        body.classList.add('bg-gray-900', 'text-white');
+      } else {
+        html.classList.remove('dark');
+        body.classList.add('bg-white', 'text-gray-900');
+      }
+    };
+    
+    applyInitialTheme(loadedSettings.theme);
   }, []);
 
   // Apply colorblind filter to the document body
@@ -128,6 +156,43 @@ export default function Settings() {
 
     applyColorblindFilter(settings.colorblindFilter);
   }, [settings.colorblindFilter]);
+
+  // Apply theme to the document
+  useEffect(() => {
+    const applyTheme = (theme: string) => {
+      const html = document.documentElement;
+      const body = document.body;
+      
+      // Remove existing theme classes
+      html.classList.remove('theme-light', 'theme-dark', 'theme-auto');
+      body.classList.remove('bg-white', 'bg-gray-900', 'text-gray-900', 'text-white');
+      
+      // Apply theme class to html for CSS-based theming
+      html.classList.add(`theme-${theme}`);
+      
+      // Handle auto theme based on system preference
+      const isDarkMode = theme === 'dark' || 
+        (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      
+      if (isDarkMode) {
+        html.classList.add('dark');
+        body.classList.add('bg-gray-900', 'text-white');
+      } else {
+        html.classList.remove('dark');
+        body.classList.add('bg-white', 'text-gray-900');
+      }
+    };
+
+    applyTheme(settings.theme);
+
+    // Listen for system theme changes when auto mode is selected
+    if (settings.theme === 'auto') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = () => applyTheme(settings.theme);
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
+  }, [settings.theme]);
 
   const saveSettings = () => {
     const updatedSettings = {
@@ -169,15 +234,90 @@ export default function Settings() {
     { id: 'preferences' as const, label: 'Travel Preferences', icon: '✈️' },
   ];
 
-  // Inject colorblind filter CSS
+  // Inject CSS for colorblind filters and theme styles
   useEffect(() => {
-    const styleId = 'colorblind-filters-style';
+    const styleId = 'settings-styles';
     let existingStyle = document.getElementById(styleId);
     
     if (!existingStyle) {
       const style = document.createElement('style');
       style.id = styleId;
       style.innerHTML = `
+        /* Theme Styles */
+        .theme-dark {
+          color-scheme: dark;
+        }
+        
+        .theme-light {
+          color-scheme: light;
+        }
+        
+        /* Dark theme styles */
+        html.dark {
+          background-color: #111827;
+          color: #f9fafb;
+        }
+        
+        html.dark body {
+          background-color: #111827 !important;
+          color: #f9fafb !important;
+        }
+        
+        html.dark .bg-white {
+          background-color: #1f2937 !important;
+        }
+        
+        html.dark .bg-gray-50 {
+          background-color: #374151 !important;
+        }
+        
+        html.dark .text-gray-900 {
+          color: #f9fafb !important;
+        }
+        
+        html.dark .text-gray-700 {
+          color: #d1d5db !important;
+        }
+        
+        html.dark .text-gray-600 {
+          color: #9ca3af !important;
+        }
+        
+        html.dark .text-gray-500 {
+          color: #6b7280 !important;
+        }
+        
+        html.dark .border-gray-200 {
+          border-color: #374151 !important;
+        }
+        
+        html.dark .border-gray-300 {
+          border-color: #4b5563 !important;
+        }
+        
+        html.dark .border-gray-100 {
+          border-color: #374151 !important;
+        }
+        
+        html.dark input, html.dark select, html.dark textarea {
+          background-color: #374151 !important;
+          border-color: #4b5563 !important;
+          color: #f9fafb !important;
+        }
+        
+        html.dark input:focus, html.dark select:focus, html.dark textarea:focus {
+          border-color: #6366f1 !important;
+          box-shadow: 0 0 0 1px #6366f1 !important;
+        }
+        
+        html.dark .shadow {
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2) !important;
+        }
+        
+        html.dark .shadow-xl {
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2) !important;
+        }
+        
         /* Colorblind Filter Styles */
         .colorblind-protanopia {
           filter: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><defs><filter id='protanopia'><feColorMatrix type='matrix' values='0.567 0.433 0 0 0 0.558 0.442 0 0 0 0 0.242 0.758 0 0 0 0 0 1 0'/></filter></defs></svg>#protanopia");
