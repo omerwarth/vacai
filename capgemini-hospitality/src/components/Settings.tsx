@@ -5,7 +5,23 @@ import { useRouter } from "next/navigation";
 
 type UserSettings = {
   id: string;
+  profile: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    dateOfBirth: string;
+    location: string;
+    bio: string;
+    avatar: string;
+    emergencyContact: {
+      name: string;
+      phone: string;
+      relationship: string;
+    };
+  };
   theme: "light" | "dark" | "auto";
+  colorblindFilter: "none" | "protanopia" | "deuteranopia" | "tritanopia" | "achromatopsia";
   language: string;
   currency: string;
   timezone: string;
@@ -45,7 +61,23 @@ function loadSettings(): UserSettings {
 function getDefaultSettings(): UserSettings {
   return {
     id: "default",
+    profile: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      dateOfBirth: "",
+      location: "",
+      bio: "",
+      avatar: "",
+      emergencyContact: {
+        name: "",
+        phone: "",
+        relationship: "",
+      },
+    },
     theme: "light",
+    colorblindFilter: "none",
     language: "en",
     currency: "USD",
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -72,13 +104,30 @@ function getDefaultSettings(): UserSettings {
 
 export default function Settings() {
   const [settings, setSettings] = useState<UserSettings>(getDefaultSettings());
-  const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'privacy' | 'preferences'>('general');
+  const [activeTab, setActiveTab] = useState<'profile' | 'general' | 'notifications' | 'privacy' | 'preferences'>('profile');
   const [hasChanges, setHasChanges] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
 
   useEffect(() => {
     setSettings(loadSettings());
   }, []);
+
+  // Apply colorblind filter to the document body
+  useEffect(() => {
+    const applyColorblindFilter = (filter: string) => {
+      const body = document.body;
+      
+      // Remove existing colorblind filter classes
+      body.classList.remove('colorblind-protanopia', 'colorblind-deuteranopia', 'colorblind-tritanopia', 'colorblind-achromatopsia');
+      
+      // Apply new filter if not 'none'
+      if (filter !== 'none') {
+        body.classList.add(`colorblind-${filter}`);
+      }
+    };
+
+    applyColorblindFilter(settings.colorblindFilter);
+  }, [settings.colorblindFilter]);
 
   const saveSettings = () => {
     const updatedSettings = {
@@ -113,11 +162,42 @@ export default function Settings() {
   };
 
   const tabs = [
+    { id: 'profile' as const, label: 'Profile', icon: '👤' },
     { id: 'general' as const, label: 'General', icon: '⚙️' },
     { id: 'notifications' as const, label: 'Notifications', icon: '🔔' },
     { id: 'privacy' as const, label: 'Privacy', icon: '🔒' },
     { id: 'preferences' as const, label: 'Travel Preferences', icon: '✈️' },
   ];
+
+  // Inject colorblind filter CSS
+  useEffect(() => {
+    const styleId = 'colorblind-filters-style';
+    let existingStyle = document.getElementById(styleId);
+    
+    if (!existingStyle) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.innerHTML = `
+        /* Colorblind Filter Styles */
+        .colorblind-protanopia {
+          filter: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><defs><filter id='protanopia'><feColorMatrix type='matrix' values='0.567 0.433 0 0 0 0.558 0.442 0 0 0 0 0.242 0.758 0 0 0 0 0 1 0'/></filter></defs></svg>#protanopia");
+        }
+        
+        .colorblind-deuteranopia {
+          filter: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><defs><filter id='deuteranopia'><feColorMatrix type='matrix' values='0.625 0.375 0 0 0 0.7 0.3 0 0 0 0 0.3 0.7 0 0 0 0 0 1 0'/></filter></defs></svg>#deuteranopia");
+        }
+        
+        .colorblind-tritanopia {
+          filter: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><defs><filter id='tritanopia'><feColorMatrix type='matrix' values='0.95 0.05 0 0 0 0 0.433 0.567 0 0 0 0.475 0.525 0 0 0 0 0 1 0'/></filter></defs></svg>#tritanopia");
+        }
+        
+        .colorblind-achromatopsia {
+          filter: grayscale(100%);
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
 
   return (
     <div className="max-w-6xl mx-auto py-12 px-4">
@@ -184,6 +264,167 @@ export default function Settings() {
 
         {/* Tab Content */}
         <div className="p-6">
+          {activeTab === 'profile' && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Profile Information</h2>
+              
+              {/* Profile Picture Section */}
+              <div className="flex items-center space-x-6 p-6 bg-gray-50 rounded-lg">
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden">
+                    {settings.profile.avatar ? (
+                      <img src={settings.profile.avatar} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <svg className="w-12 h-12 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    )}
+                  </div>
+                  <button className="absolute bottom-0 right-0 w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm hover:bg-indigo-700">
+                    📷
+                  </button>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-medium text-gray-900">Profile Photo</h3>
+                  <p className="text-sm text-gray-500 mt-1">Upload a profile picture or choose an avatar</p>
+                  <div className="mt-3 flex gap-2">
+                    <button className="px-3 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                      Upload Photo
+                    </button>
+                    <button className="px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Personal Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                  <input
+                    type="text"
+                    value={settings.profile.firstName}
+                    onChange={(e) => updateSetting('profile.firstName', e.target.value)}
+                    placeholder="Enter your first name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                  <input
+                    type="text"
+                    value={settings.profile.lastName}
+                    onChange={(e) => updateSetting('profile.lastName', e.target.value)}
+                    placeholder="Enter your last name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                  <input
+                    type="email"
+                    value={settings.profile.email}
+                    onChange={(e) => updateSetting('profile.email', e.target.value)}
+                    placeholder="your.email@example.com"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={settings.profile.phone}
+                    onChange={(e) => updateSetting('profile.phone', e.target.value)}
+                    placeholder="+1 (555) 123-4567"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                  <input
+                    type="date"
+                    value={settings.profile.dateOfBirth}
+                    onChange={(e) => updateSetting('profile.dateOfBirth', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                  <input
+                    type="text"
+                    value={settings.profile.location}
+                    onChange={(e) => updateSetting('profile.location', e.target.value)}
+                    placeholder="City, State, Country"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              {/* Bio Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                <textarea
+                  value={settings.profile.bio}
+                  onChange={(e) => updateSetting('profile.bio', e.target.value)}
+                  placeholder="Tell us about yourself, your travel interests, and experiences..."
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+
+              {/* Emergency Contact */}
+              <div className="border-t border-gray-200 pt-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Emergency Contact</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Contact Name</label>
+                    <input
+                      type="text"
+                      value={settings.profile.emergencyContact.name}
+                      onChange={(e) => updateSetting('profile.emergencyContact.name', e.target.value)}
+                      placeholder="Emergency contact name"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Contact Phone</label>
+                    <input
+                      type="tel"
+                      value={settings.profile.emergencyContact.phone}
+                      onChange={(e) => updateSetting('profile.emergencyContact.phone', e.target.value)}
+                      placeholder="+1 (555) 987-6543"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Relationship</label>
+                    <select
+                      value={settings.profile.emergencyContact.relationship}
+                      onChange={(e) => updateSetting('profile.emergencyContact.relationship', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="">Select relationship</option>
+                      <option value="parent">Parent</option>
+                      <option value="spouse">Spouse/Partner</option>
+                      <option value="sibling">Sibling</option>
+                      <option value="child">Child</option>
+                      <option value="friend">Friend</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'general' && (
             <div className="space-y-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">General Settings</h2>
@@ -199,6 +440,21 @@ export default function Settings() {
                     <option value="light">🌞 Light</option>
                     <option value="dark">🌙 Dark</option>
                     <option value="auto">🔄 Auto</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Colorblind Filter</label>
+                  <select
+                    value={settings.colorblindFilter}
+                    onChange={(e) => updateSetting('colorblindFilter', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="none">👁️ None</option>
+                    <option value="protanopia">🔴 Protanopia (Red-blind)</option>
+                    <option value="deuteranopia">🟢 Deuteranopia (Green-blind)</option>
+                    <option value="tritanopia">🔵 Tritanopia (Blue-blind)</option>
+                    <option value="achromatopsia">⚫ Achromatopsia (Total color blindness)</option>
                   </select>
                 </div>
 
