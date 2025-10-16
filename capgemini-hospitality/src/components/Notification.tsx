@@ -32,7 +32,7 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
           <h2 className="text-xl font-extrabold text-sky-800 mb-2">Notifications</h2>
           <p className="text-sm text-sky-700 mb-4">Recent activity and system messages.</p>
 
-          <div className="space-y-3 overflow-auto max-h-[60vh] notifications-scroll pr-1">
+          <div className="space-y-3 overflow-auto max-h-[60vh] notifications-scroll pr-3">
             <div className="p-3 bg-white/80 rounded-lg border border-gray-100">
               <p className="text-sm text-gray-600">System</p>
               <p className="text-base font-medium text-sky-700">Maintenance scheduled for 11:00 PM UTC.</p>
@@ -70,15 +70,33 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
   );
 }
 
-// Styles for custom scrollbar behaviour (transparent thumb, right-side placement)
-// We add both WebKit and Firefox rules. The scrollbar remains usable but visually transparent.
-// Keep this near the component so it's easy to locate. If your project uses global CSS,
-// you can move these into a central stylesheet.
+// Styles for custom scrollbar with visible, styled scroll wheel
+// Styled to be modern and accessible with proper hover states
 const _style = (`
-.notifications-scroll { scrollbar-width: thin; scrollbar-color: transparent transparent; }
-.notifications-scroll::-webkit-scrollbar { width: 10px; }
-.notifications-scroll::-webkit-scrollbar-track { background: transparent; }
-.notifications-scroll::-webkit-scrollbar-thumb { background: transparent; border-radius: 9999px; }
+.notifications-scroll { 
+  scrollbar-width: thin; 
+  scrollbar-color: rgba(148, 163, 184, 0.6) rgba(241, 245, 249, 0.3); 
+}
+.notifications-scroll::-webkit-scrollbar { 
+  width: 12px; 
+}
+.notifications-scroll::-webkit-scrollbar-track { 
+  background: rgba(241, 245, 249, 0.3); 
+  border-radius: 6px; 
+  margin: 4px 0;
+}
+.notifications-scroll::-webkit-scrollbar-thumb { 
+  background: rgba(148, 163, 184, 0.6); 
+  border-radius: 6px; 
+  border: 2px solid rgba(241, 245, 249, 0.3);
+  transition: background-color 0.2s ease;
+}
+.notifications-scroll::-webkit-scrollbar-thumb:hover { 
+  background: rgba(100, 116, 139, 0.8); 
+}
+.notifications-scroll::-webkit-scrollbar-thumb:active { 
+  background: rgba(71, 85, 105, 0.9); 
+}
 `);
 
 // Inject the style tag into the document at runtime for environments that accept it.
