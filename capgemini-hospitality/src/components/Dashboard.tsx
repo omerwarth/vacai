@@ -13,6 +13,7 @@ import { HelpModal } from './Help';
 import { ContactModal } from './Contact';
 import { NotificationModal } from './Notification';
 import { SavedPlansLink } from './SavedPlans';
+import { SettingsLink } from './Settings';
 
 interface User {
   id: string;
@@ -244,12 +245,9 @@ export default function Dashboard({ user }: DashboardProps) {
               <SavedPlansLink className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer">
                 Saved
               </SavedPlansLink>
-              <button
-                onClick={(e) => { e.preventDefault(); setShowSettingsModal(true); }}
-                className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer"
-              >
+              <SettingsLink className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer">
                 Settings
-              </button>
+              </SettingsLink>
               <button
                 onClick={(e) => { e.preventDefault(); setShowContactModal(true); }}
                 className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer"
