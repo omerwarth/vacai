@@ -56,7 +56,7 @@ export default function SavedPlans() {
   }, []);
 
   // compute filtered plans based on selected period
-  const filteredPlans = plans.filter((plan) => {
+  const periodFilteredPlans = plans.filter((plan) => {
     if (period === 'all') return true;
     const planDate = new Date(plan.date).getTime();
     const now = Date.now();
@@ -73,17 +73,20 @@ export default function SavedPlans() {
     return planDate >= cutoff;
   });
 
+  // apply price filtering (fixed to work independently)
+  const priceFilteredPlans = periodFilteredPlans.filter((plan) => {
+    if (priceThreshold === 'all') return true;
+    return (plan.price || 0) >= priceThreshold;
+  });
+
   // apply search filter (case-insensitive substring) against title OR location
-  const visiblePlans = filteredPlans.filter((plan) => {
+  const visiblePlans = priceFilteredPlans.filter((plan) => {
     if (!locationQuery) return true;
     const q = locationQuery.toLowerCase();
     const inTitle = plan.title && plan.title.toLowerCase().includes(q);
     const inLocation = plan.location && plan.location.toLowerCase().includes(q);
     const inDescription = plan.description && plan.description.toLowerCase().includes(q);
-    const matchesText = Boolean(inTitle || inLocation || inDescription);
-    if (!matchesText) return false;
-    if (priceThreshold === 'all') return true;
-    return (plan.price || 0) >= priceThreshold;
+    return Boolean(inTitle || inLocation || inDescription);
   });
 
   return (
@@ -123,12 +126,12 @@ export default function SavedPlans() {
             onChange={(e) => setPriceThreshold(e.target.value === 'all' ? 'all' : Number(e.target.value))}
             className="ml-2 text-sm rounded-md border border-emerald-200 px-3 py-2 bg-emerald-50 text-emerald-700"
           >
-            <option value="1">$1</option>
-            <option value="10">$10</option>
-            <option value="100">$100</option>
-            <option value="500">$500</option>
-            <option value="1000">$1,000</option>
-            <option value="10000">$10,000</option>
+            <option value="1">≥ $1</option>
+            <option value="10">≥ $10</option>
+            <option value="100">≥ $100</option>
+            <option value="500">≥ $500</option>
+            <option value="1000">≥ $1,000</option>
+            <option value="10000">≥ $10,000</option>
             <option value="all">All</option>
           </select>
           <input

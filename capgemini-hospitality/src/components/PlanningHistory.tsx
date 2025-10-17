@@ -123,12 +123,12 @@ export default function PlanningHistory() {
             onChange={(e) => setPriceThreshold(e.target.value === 'all' ? 'all' : Number(e.target.value))}
             className="ml-2 text-sm rounded-md border border-green-200 px-3 py-2 bg-green-50 text-green-700"
           >
-            <option value="1">$1</option>
-            <option value="10">$10</option>
-            <option value="100">$100</option>
-            <option value="500">$500</option>
-            <option value="1000">$1,000</option>
-            <option value="10000">$10,000</option>
+            <option value="1">≥ $1</option>
+            <option value="10">≥ $10</option>
+            <option value="100">≥ $100</option>
+            <option value="500">≥ $500</option>
+            <option value="1000">≥ $1,000</option>
+            <option value="10000">≥ $10,000</option>
             <option value="all">All</option>
           </select>
           <input
