@@ -5,8 +5,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 interface ThemeContextType {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
-  colorblindFilter: string;
-  setColorblindFilter: (filter: string) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -25,12 +23,10 @@ interface ThemeProviderProps {
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [colorblindFilter, setColorblindFilter] = useState('none');
 
   // Load saved preferences on mount
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('darkMode');
-    const savedColorblindFilter = localStorage.getItem('colorblindFilter');
     
     if (savedDarkMode !== null) {
       const darkMode = savedDarkMode === 'true';
@@ -41,14 +37,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       setIsDarkMode(prefersDark);
       document.documentElement.classList.toggle('dark', prefersDark);
-    }
-    
-    if (savedColorblindFilter) {
-      setColorblindFilter(savedColorblindFilter);
-      document.documentElement.className = document.documentElement.className.replace(/colorblind-\S+/g, '');
-      if (savedColorblindFilter !== 'none') {
-        document.documentElement.classList.add(`colorblind-${savedColorblindFilter}`);
-      }
     }
   }, []);
 
@@ -160,6 +148,19 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       
       html.dark .text-gray-400:not(.fixed .text-gray-400):not(.absolute .text-gray-400) {
         color: #6b7280 !important;
+      }
+      
+      /* Slate text colors - for Continue Your Journey section */
+      html.dark .text-slate-700:not(.fixed .text-slate-700):not(.absolute .text-slate-700) {
+        color: #f1f5f9 !important;
+      }
+      
+      html.dark .text-slate-600:not(.fixed .text-slate-600):not(.absolute .text-slate-600) {
+        color: #f8fafc !important;
+      }
+      
+      html.dark .text-slate-900:not(.fixed .text-slate-900):not(.absolute .text-slate-900) {
+        color: #ffffff !important;
       }
       
       /* Border colors */
@@ -306,23 +307,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
         backdrop-filter: blur(24px) !important;
         background-color: rgba(31, 41, 55, 0.9) !important;
       }
-      
-      /* Colorblind accessibility filters - Apply to body */
-      html.colorblind-protanopia body {
-        filter: sepia(100%) hue-rotate(180deg) saturate(200%) !important;
-      }
-      
-      html.colorblind-deuteranopia body {
-        filter: hue-rotate(90deg) saturate(150%) !important;
-      }
-      
-      html.colorblind-tritanopia body {
-        filter: hue-rotate(270deg) saturate(120%) !important;
-      }
-      
-      html.colorblind-achromatopsia body {
-        filter: grayscale(100%) !important;
-      }
     `;
     document.head.appendChild(style);
     
@@ -361,31 +345,9 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     console.log('HTML classes:', document.documentElement.className);
   };
 
-  const handleColorblindFilterChange = (filter: string) => {
-    setColorblindFilter(filter);
-    localStorage.setItem('colorblindFilter', filter);
-    
-    console.log('Setting colorblind filter to:', filter);
-    
-    // Remove any existing colorblind filter classes
-    document.documentElement.className = document.documentElement.className.replace(/colorblind-\S+/g, '');
-    
-    // Add the new filter class if it's not 'none'
-    if (filter !== 'none') {
-      document.documentElement.classList.add(`colorblind-${filter}`);
-      console.log('Added colorblind class:', `colorblind-${filter}`);
-    } else {
-      console.log('Removed all colorblind classes');
-    }
-    
-    console.log('HTML classes after filter change:', document.documentElement.className);
-  };
-
   const contextValue: ThemeContextType = {
     isDarkMode,
     toggleDarkMode,
-    colorblindFilter,
-    setColorblindFilter: handleColorblindFilterChange,
   };
 
   return (
