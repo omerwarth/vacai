@@ -53,7 +53,7 @@ export default function PlanningHistory() {
   }, []);
 
   // compute filtered plans based on selected period
-  const filteredPlans = plans.filter((plan) => {
+  const periodFilteredPlans = plans.filter((plan) => {
     if (period === 'all') return true;
     const planDate = new Date(plan.date).getTime();
     const now = Date.now();
@@ -70,16 +70,19 @@ export default function PlanningHistory() {
     return planDate >= cutoff;
   });
 
+  // apply price filtering (fixed to work independently)
+  const priceFilteredPlans = periodFilteredPlans.filter((plan) => {
+    if (priceThreshold === 'all') return true;
+    return (plan.price || 0) >= priceThreshold;
+  });
+
   // apply search filter (case-insensitive substring) against title OR location
-  const visiblePlans = filteredPlans.filter((plan) => {
+  const visiblePlans = priceFilteredPlans.filter((plan) => {
     if (!locationQuery) return true;
     const q = locationQuery.toLowerCase();
     const inTitle = plan.title && plan.title.toLowerCase().includes(q);
     const inLocation = plan.location && plan.location.toLowerCase().includes(q);
-    const matchesText = Boolean(inTitle || inLocation);
-    if (!matchesText) return false;
-    if (priceThreshold === 'all') return true;
-    return (plan.price || 0) >= priceThreshold;
+    return Boolean(inTitle || inLocation);
   });
 
   return (
