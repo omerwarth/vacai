@@ -196,11 +196,91 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
         ring-color: #3b82f6 !important;
       }
       
-      /* Button enhancements - Dark mode */
-      html.dark button:not(.fixed button):not(.absolute button):not([class*="bg-indigo"]):not([class*="bg-blue"]):not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-white"]) {
+      /* Button enhancements - Dark mode - Only for buttons that should have backgrounds */
+      html.dark button.bg-gray-100:not(.fixed button):not(.absolute button),
+      html.dark button.bg-gray-200:not(.fixed button):not(.absolute button),
+      html.dark button:not(.fixed button):not(.absolute button):not([class*="bg-"]):not(.hover\\:underline):not(.text-gray-300):not(.text-gray-600) {
         background-color: #374151 !important;
         color: #f9fafb !important;
         border-color: #6b7280 !important;
+      }
+      
+      /* Fix specific button styling in dark mode */
+      html.dark button.bg-white.text-slate-900:not(.fixed button):not(.absolute button) {
+        background-color: #1f2937 !important;
+        color: #ffffff !important;
+        border-color: #4b5563 !important;
+      }
+      
+      html.dark button.bg-white.text-slate-900:hover:not(.fixed button):not(.absolute button) {
+        background-color: #374151 !important;
+      }
+      
+      /* Help Modal specific styling for dark mode */
+      html.dark .bg-gradient-to-br.from-white\\/60.to-sky-50\\/40 {
+        background: linear-gradient(to bottom right, rgba(31, 41, 55, 0.95), rgba(55, 65, 81, 0.9)) !important;
+        border-color: #4b5563 !important;
+      }
+      
+      html.dark .text-sky-800 {
+        color: #93c5fd !important;
+      }
+      
+      html.dark .text-sky-700 {
+        color: #bfdbfe !important;
+      }
+      
+      html.dark .bg-sky-50 {
+        background-color: #374151 !important;
+      }
+      
+      html.dark .hover\\:bg-sky-100:hover {
+        background-color: #4b5563 !important;
+      }
+      
+      html.dark .bg-rose-50 {
+        background-color: #374151 !important;
+      }
+      
+      html.dark .hover\\:bg-rose-100:hover {
+        background-color: #4b5563 !important;
+      }
+      
+      html.dark .bg-emerald-50 {
+        background-color: #374151 !important;
+      }
+      
+      html.dark .hover\\:bg-emerald-100:hover {
+        background-color: #4b5563 !important;
+      }
+      
+      html.dark .text-sky-600,
+      html.dark .text-rose-600,
+      html.dark .text-emerald-600 {
+        color: #93c5fd !important;
+      }
+      
+      html.dark .text-emerald-700 {
+        color: #86efac !important;
+      }
+      
+      html.dark .border {
+        border-color: #4b5563 !important;
+      }
+      
+      html.dark button.bg-white.text-gray-700 {
+        background-color: #374151 !important;
+        color: #f9fafb !important;
+        border-color: #6b7280 !important;
+      }
+      
+      /* Help modal solution text in dark mode */
+      html.dark .text-gray-700 {
+        color: #f9fafb !important;
+      }
+      
+      html.dark details div p {
+        color: #f9fafb !important;
       }
       
       html.dark button:hover:not(.fixed button:hover):not(.absolute button:hover) {
@@ -227,21 +307,21 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
         background-color: rgba(31, 41, 55, 0.9) !important;
       }
       
-      /* Colorblind accessibility filters */
-      .colorblind-protanopia {
-        filter: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><defs><filter id='protanopia'><feColorMatrix type='matrix' values='0.567 0.433 0 0 0 0.558 0.442 0 0 0 0 0.242 0.758 0 0 0 0 0 1 0'/></filter></defs></svg>#protanopia");
+      /* Colorblind accessibility filters - Apply to body */
+      html.colorblind-protanopia body {
+        filter: sepia(100%) hue-rotate(180deg) saturate(200%) !important;
       }
       
-      .colorblind-deuteranopia {
-        filter: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><defs><filter id='deuteranopia'><feColorMatrix type='matrix' values='0.625 0.375 0 0 0 0.7 0.3 0 0 0 0 0.3 0.7 0 0 0 0 0 1 0'/></filter></defs></svg>#deuteranopia");
+      html.colorblind-deuteranopia body {
+        filter: hue-rotate(90deg) saturate(150%) !important;
       }
       
-      .colorblind-tritanopia {
-        filter: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><defs><filter id='tritanopia'><feColorMatrix type='matrix' values='0.95 0.05 0 0 0 0 0.433 0.567 0 0 0 0.475 0.525 0 0 0 0 0 1 0'/></filter></defs></svg>#tritanopia");
+      html.colorblind-tritanopia body {
+        filter: hue-rotate(270deg) saturate(120%) !important;
       }
       
-      .colorblind-achromatopsia {
-        filter: grayscale(100%);
+      html.colorblind-achromatopsia body {
+        filter: grayscale(100%) !important;
       }
     `;
     document.head.appendChild(style);
@@ -285,13 +365,20 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     setColorblindFilter(filter);
     localStorage.setItem('colorblindFilter', filter);
     
+    console.log('Setting colorblind filter to:', filter);
+    
     // Remove any existing colorblind filter classes
     document.documentElement.className = document.documentElement.className.replace(/colorblind-\S+/g, '');
     
     // Add the new filter class if it's not 'none'
     if (filter !== 'none') {
       document.documentElement.classList.add(`colorblind-${filter}`);
+      console.log('Added colorblind class:', `colorblind-${filter}`);
+    } else {
+      console.log('Removed all colorblind classes');
     }
+    
+    console.log('HTML classes after filter change:', document.documentElement.className);
   };
 
   const contextValue: ThemeContextType = {
