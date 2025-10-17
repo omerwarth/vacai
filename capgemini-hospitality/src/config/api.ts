@@ -334,16 +334,24 @@ export const apiService = {
   },
 
   async updateTravelPreferences(preferencesId: string, preferences: Partial<TravelPreferences>) {
-    // Assuming you need userId for the URL pattern
-    const userId = preferences.userId || 'unknown';
-    const response = await fetch(`${apiConfig.endpoints.userPreferences}/${userId}/${preferencesId}`, {
+    const { userId, profileId } = preferences;
+
+    // ✅ Require both userId and profileId for clarity and proper routing
+    if (!userId || !profileId) {
+      throw new Error('Both userId and profileId are required to update travel preferences');
+    }
+
+    const encodedUserId = encodeURIComponent(userId);
+    const encodedProfileId = encodeURIComponent(profileId);
+
+    const response = await fetch(`${apiConfig.endpoints.userPreferences}/${encodedUserId}/${encodedProfileId}/${preferencesId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(preferences),
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ Update Preferences Error response:', errorText);
@@ -355,18 +363,25 @@ export const apiService = {
         throw new Error(`Failed to update travel preferences (${response.status}): ${errorText || 'Unknown error'}`);
       }
     }
-    
+
     return response.json();
   },
 
-  async deleteTravelPreferences(preferencesId: string, userId: string) {
-    const response = await fetch(`${apiConfig.endpoints.userPreferences}/${userId}/${preferencesId}`, {
+  async deleteTravelPreferences(preferencesId: string, userId: string, profileId: string) {
+    if (!userId || !profileId) {
+      throw new Error('Both userId and profileId are required to delete travel preferences');
+    }
+
+    const encodedUserId = encodeURIComponent(userId);
+    const encodedProfileId = encodeURIComponent(profileId);
+
+    const response = await fetch(`${apiConfig.endpoints.userPreferences}/${encodedUserId}/${encodedProfileId}/${preferencesId}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ Delete Preferences Error response:', errorText);
@@ -378,7 +393,6 @@ export const apiService = {
         throw new Error(`Failed to delete travel preferences (${response.status}): ${errorText || 'Unknown error'}`);
       }
     }
-    
     return response.json();
   }
 };
