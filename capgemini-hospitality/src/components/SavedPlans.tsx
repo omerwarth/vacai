@@ -29,7 +29,7 @@ function loadSavedPlans(): SavedPlan[] {
         description: p && p.description ? String(p.description) : ''
       }));
     }
-  } catch (e) {
+  } catch {
     // ignore
   }
   return [];
@@ -107,7 +107,7 @@ export default function SavedPlans() {
         <div className="flex items-center gap-3">
           <select
             value={period}
-            onChange={(e) => setPeriod(e.target.value as any)}
+            onChange={(e) => setPeriod(e.target.value as 'all' | 'day' | 'week' | 'month' | 'year' | '2y' | '3y' | '4y' | '5y' | '10y')}
             className="text-sm rounded-md border border-emerald-200 px-3 py-2 bg-emerald-50 text-emerald-700"
           >
             <option value="day">Day Ago</option>

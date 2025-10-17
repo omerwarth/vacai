@@ -2,9 +2,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+type ColorblindFilter = 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia';
+
 interface ThemeContextType {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
+  colorblindFilter: ColorblindFilter;
+  setColorblindFilter: (filter: ColorblindFilter) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -23,10 +27,12 @@ interface ThemeProviderProps {
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [colorblindFilter, setColorblindFilter] = useState<ColorblindFilter>('none');
 
   // Load saved preferences on mount
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('darkMode');
+    const savedColorblindFilter = localStorage.getItem('colorblindFilter') as ColorblindFilter;
     
     if (savedDarkMode !== null) {
       const darkMode = savedDarkMode === 'true';
@@ -38,12 +44,170 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       setIsDarkMode(prefersDark);
       document.documentElement.classList.toggle('dark', prefersDark);
     }
+    
+    if (savedColorblindFilter && savedColorblindFilter !== 'none') {
+      setColorblindFilter(savedColorblindFilter);
+    }
   }, []);
+
+  // Colorblind filter CSS injection with modal protection
+  useEffect(() => {
+    console.log('Applying colorblind filter:', colorblindFilter);
+    const applyColorblindFilter = () => {
+      const filterId = 'colorblind-filter-styles';
+      const svgId = 'colorblind-svg-filters';
+      const existingFilter = document.getElementById(filterId);
+      const existingSvg = document.getElementById(svgId);
+      
+      if (existingFilter) {
+        document.head.removeChild(existingFilter);
+      }
+      if (existingSvg) {
+        document.body.removeChild(existingSvg);
+      }
+      
+      if (colorblindFilter === 'none') {
+        console.log('No colorblind filter selected, removing any existing filters');
+        return;
+      }
+      
+      console.log('Creating SVG filters for:', colorblindFilter);
+      
+      // Create SVG element with filters and add to DOM
+      const svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svgElement.id = svgId;
+      svgElement.style.position = 'absolute';
+      svgElement.style.width = '0';
+      svgElement.style.height = '0';
+      svgElement.setAttribute('aria-hidden', 'true');
+      
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      
+      // Protanopia (Red-blind) filter
+      const protanopiaFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+      protanopiaFilter.id = 'protanopia';
+      const protanopiaMatrix = document.createElementNS('http://www.w3.org/2000/svg', 'feColorMatrix');
+      protanopiaMatrix.setAttribute('type', 'matrix');
+      protanopiaMatrix.setAttribute('values', '0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0');
+      protanopiaFilter.appendChild(protanopiaMatrix);
+      defs.appendChild(protanopiaFilter);
+      
+      // Deuteranopia (Green-blind) filter
+      const deuteranopiaFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+      deuteranopiaFilter.id = 'deuteranopia';
+      const deuteranopiaMatrix = document.createElementNS('http://www.w3.org/2000/svg', 'feColorMatrix');
+      deuteranopiaMatrix.setAttribute('type', 'matrix');
+      deuteranopiaMatrix.setAttribute('values', '0.625 0.375 0 0 0  0.7 0.3 0 0 0  0 0.3 0.7 0 0  0 0 0 1 0');
+      deuteranopiaFilter.appendChild(deuteranopiaMatrix);
+      defs.appendChild(deuteranopiaFilter);
+      
+      // Tritanopia (Blue-blind) filter
+      const tritanopiaFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+      tritanopiaFilter.id = 'tritanopia';
+      const tritanopiaMatrix = document.createElementNS('http://www.w3.org/2000/svg', 'feColorMatrix');
+      tritanopiaMatrix.setAttribute('type', 'matrix');
+      tritanopiaMatrix.setAttribute('values', '0.95 0.05 0 0 0  0 0.433 0.567 0 0  0 0.475 0.525 0 0  0 0 0 1 0');
+      tritanopiaFilter.appendChild(tritanopiaMatrix);
+      defs.appendChild(tritanopiaFilter);
+      
+      // Achromatopsia (Complete color blindness) filter
+      const achromatopsiaFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+      achromatopsiaFilter.id = 'achromatopsia';
+      const achromatopsiaMatrix = document.createElementNS('http://www.w3.org/2000/svg', 'feColorMatrix');
+      achromatopsiaMatrix.setAttribute('type', 'matrix');
+      achromatopsiaMatrix.setAttribute('values', '0.299 0.587 0.114 0 0  0.299 0.587 0.114 0 0  0.299 0.587 0.114 0 0  0 0 0 1 0');
+      achromatopsiaFilter.appendChild(achromatopsiaMatrix);
+      defs.appendChild(achromatopsiaFilter);
+      
+      svgElement.appendChild(defs);
+      document.body.appendChild(svgElement);
+      
+      const style = document.createElement('style');
+      style.id = filterId;
+      
+      // CSS that applies the filter to the whole body but excludes modals
+      style.innerHTML = `
+        /* COLORBLIND FILTER APPLICATION - Simple approach */
+        html {
+          filter: url(#${colorblindFilter}) !important;
+        }
+        
+        /* MODAL SAFETY: Exclude modals and overlays from filter */
+        .fixed,
+        .absolute,
+        [class*="z-5"],
+        [class*="z-6"],
+        [role="dialog"],
+        [aria-modal="true"] {
+          filter: none !important;
+        }
+        
+        /* Specifically exclude common modal backdrop classes */
+        .bg-black\\/50,
+        .bg-gray-900\\/50,
+        .backdrop-blur-sm,
+        .backdrop-blur-xl {
+          filter: none !important;
+        }
+        
+        /* Target specific components that might be modals */
+        .rounded-2xl.shadow-2xl,
+        .border.shadow-lg.bg-white,
+        .bg-white.rounded-lg.shadow-xl {
+          filter: none !important;
+        }
+      `;
+      
+      document.head.appendChild(style);
+      console.log('Colorblind filter applied successfully:', colorblindFilter);
+    };
+    
+    applyColorblindFilter();
+    
+    // Set up mutation observer to protect dynamically added modals
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const element = node as Element;
+            // Check if it's a modal or overlay
+            if (
+              element.classList.contains('fixed') ||
+              element.classList.contains('absolute') ||
+              element.getAttribute('role') === 'dialog' ||
+              element.getAttribute('aria-modal') === 'true' ||
+              Array.from(element.classList).some(cls => cls.includes('z-'))
+            ) {
+              // Ensure no filter is applied
+              (element as HTMLElement).style.filter = 'none';
+            }
+          }
+        });
+      });
+    });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    
+    return () => {
+      const filterToRemove = document.getElementById('colorblind-filter-styles');
+      const svgToRemove = document.getElementById('colorblind-svg-filters');
+      if (filterToRemove) {
+        document.head.removeChild(filterToRemove);
+      }
+      if (svgToRemove) {
+        document.body.removeChild(svgToRemove);
+      }
+      observer.disconnect();
+    };
+  }, [colorblindFilter]);
 
   // MODAL-SAFE CSS injection
   useEffect(() => {
     const styleId = 'global-theme-styles';
-    let existingStyle = document.getElementById(styleId);
+    const existingStyle = document.getElementById(styleId);
     
     if (existingStyle) {
       document.head.removeChild(existingStyle);
@@ -348,6 +512,12 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const contextValue: ThemeContextType = {
     isDarkMode,
     toggleDarkMode,
+    colorblindFilter,
+    setColorblindFilter: (filter: ColorblindFilter) => {
+      console.log('Setting colorblind filter to:', filter);
+      setColorblindFilter(filter);
+      localStorage.setItem('colorblindFilter', filter);
+    },
   };
 
   return (

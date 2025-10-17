@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useTheme } from './ThemeProvider';
 
 type UserSettings = {
@@ -53,7 +54,7 @@ function loadSettings(): UserSettings {
     if (!raw) return getDefaultSettings();
     const parsed = JSON.parse(raw);
     return { ...getDefaultSettings(), ...parsed };
-  } catch (e) {
+  } catch {
     return getDefaultSettings();
   }
 }
@@ -102,7 +103,7 @@ function getDefaultSettings(): UserSettings {
 }
 
 export default function Settings() {
-  const { isDarkMode, toggleDarkMode } = useTheme();
+  const { isDarkMode, toggleDarkMode, colorblindFilter, setColorblindFilter } = useTheme();
   const [settings, setSettings] = useState<UserSettings>(getDefaultSettings());
   const [activeTab, setActiveTab] = useState<'profile' | 'general' | 'notifications' | 'privacy' | 'preferences'>('profile');
   const [hasChanges, setHasChanges] = useState(false);
@@ -111,26 +112,11 @@ export default function Settings() {
   useEffect(() => {
     const loadedSettings = loadSettings();
     setSettings(loadedSettings);
-  }, []);
-
-  // Apply colorblind filter to the document body
-  useEffect(() => {
-    const applyColorblindFilter = (filter: string) => {
-      const body = document.body;
-      
-      // Remove existing colorblind filter classes
-      body.classList.remove('colorblind-protanopia', 'colorblind-deuteranopia', 'colorblind-tritanopia', 'colorblind-achromatopsia');
-      
-      // Apply new filter if not 'none'
-      if (filter !== 'none') {
-        body.classList.add(`colorblind-${filter}`);
-      }
-    };
-
-    applyColorblindFilter(settings.colorblindFilter);
-  }, [settings.colorblindFilter]);
-
-
+    // Sync loaded colorblind filter with theme provider
+    if (loadedSettings.colorblindFilter !== colorblindFilter) {
+      setColorblindFilter(loadedSettings.colorblindFilter);
+    }
+  }, [colorblindFilter, setColorblindFilter]);
 
   const saveSettings = () => {
     const updatedSettings = {
@@ -150,13 +136,18 @@ export default function Settings() {
     setShowResetModal(false);
   };
 
-  const updateSetting = (path: string, value: any) => {
+  const updateSetting = (path: string, value: string | number | boolean) => {
+    // Special handling for colorblind filter to sync with theme provider
+    if (path === 'colorblindFilter') {
+      setColorblindFilter(value as 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia');
+    }
+    
     const keys = path.split('.');
     const newSettings = { ...settings };
-    let current: any = newSettings;
+    let current: Record<string, unknown> = newSettings;
     
     for (let i = 0; i < keys.length - 1; i++) {
-      current = current[keys[i]];
+      current = current[keys[i]] as Record<string, unknown>;
     }
     current[keys[keys.length - 1]] = value;
     
@@ -175,7 +166,7 @@ export default function Settings() {
   // Inject CSS for colorblind filters and theme styles
   useEffect(() => {
     const styleId = 'settings-styles';
-    let existingStyle = document.getElementById(styleId);
+    const existingStyle = document.getElementById(styleId);
     
     if (!existingStyle) {
       const style = document.createElement('style');
@@ -351,7 +342,7 @@ export default function Settings() {
                 <div className="relative">
                   <div className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden">
                     {settings.profile.avatar ? (
-                      <img src={settings.profile.avatar} alt="Profile" className="w-full h-full object-cover" />
+                      <Image src={settings.profile.avatar} alt="Profile" width={96} height={96} className="w-full h-full object-cover" />
                     ) : (
                       <svg className="w-12 h-12 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -528,7 +519,7 @@ export default function Settings() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Colorblind Filter</label>
                   <select
-                    value={settings.colorblindFilter}
+                    value={colorblindFilter}
                     onChange={(e) => updateSetting('colorblindFilter', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                   >

@@ -16,7 +16,7 @@ function HelpFAQList() {
           <svg className="w-4 h-4 text-sky-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
         </summary>
         <div className="px-4 py-4 bg-transparent">
-          <p className="text-gray-700">Click the "Start Planning Your Journey" button on the homepage or dashboard to begin.</p>
+          <p className="text-gray-700">Click the &quot;Start Planning Your Journey&quot; button on the homepage or dashboard to begin.</p>
         </div>
       </details>
 
@@ -26,7 +26,7 @@ function HelpFAQList() {
           <svg className="w-4 h-4 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
         </summary>
         <div className="px-4 py-4 bg-transparent">
-          <p className="text-gray-700">Open the Profile menu in the top-right and click "Sign Out".</p>
+          <p className="text-gray-700">Open the Profile menu in the top-right and click &quot;Sign Out&quot;.</p>
         </div>
       </details>
 

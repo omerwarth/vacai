@@ -35,11 +35,10 @@ interface DashboardProps {
 export default function Dashboard({ user }: DashboardProps) {
   const router = useRouter();
   const { logout } = useAuth0();
-  const { isDarkMode, toggleDarkMode } = useTheme();
+  const { isDarkMode, toggleDarkMode, colorblindFilter, setColorblindFilter } = useTheme();
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [hasExistingPlan, setHasExistingPlan] = useState(false);
   
@@ -125,7 +124,7 @@ export default function Dashboard({ user }: DashboardProps) {
     // Navigate to planning history page
     try {
       router.push('/planning-history');
-    } catch (e) {
+    } catch {
       console.log('Viewing planning history...');
     }
   };
@@ -264,6 +263,22 @@ export default function Dashboard({ user }: DashboardProps) {
               >
                 {isDarkMode ? '☀️' : '🌙'}
               </button>
+              
+              {/* Colorblind Filter Dropdown */}
+              <div className="relative group">
+                <select
+                  value={colorblindFilter}
+                  onChange={(e) => setColorblindFilter(e.target.value as 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia')}
+                  className={`${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 text-gray-300 border-gray-600' : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300'} px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 border hover:shadow-sm cursor-pointer`}
+                  title="Accessibility Filter"
+                >
+                  <option value="none">🎨 Normal</option>
+                  <option value="protanopia">🔴 Protanopia</option>
+                  <option value="deuteranopia">🟢 Deuteranopia</option>
+                  <option value="tritanopia">🔵 Tritanopia</option>
+                  <option value="achromatopsia">⚫ Achromatopsia</option>
+                </select>
+              </div>
               
               <div className="relative group profile-dropdown">
                 <button className={`${isDarkMode ? 'bg-gray-800/90 hover:bg-gray-700 text-gray-200' : 'bg-white/90 hover:bg-gray-50 text-gray-700'} px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border ${isDarkMode ? 'border-gray-600 hover:border-gray-500' : 'border-gray-200 hover:border-gray-300'} hover:shadow-sm`}>

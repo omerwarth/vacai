@@ -31,7 +31,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
           </div>
 
           <h2 className="text-xl font-extrabold text-sky-800 mb-2">Contact Support</h2>
-          <p className="text-sm text-sky-700 mb-4">We're here to help — reach out using the information below.</p>
+          <p className="text-sm text-sky-700 mb-4">We&apos;re here to help — reach out using the information below.</p>
 
           <div className="space-y-3">
             <div className="p-3 bg-white/80 rounded-lg border border-gray-100">
