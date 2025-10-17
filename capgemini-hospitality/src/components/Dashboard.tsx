@@ -14,6 +14,7 @@ import { ContactModal } from './Contact';
 import { NotificationModal } from './Notification';
 import { SavedPlansLink } from './SavedPlans';
 import { SettingsLink } from './Settings';
+import { useTheme } from './ThemeProvider';
 
 interface User {
   id: string;
@@ -35,6 +36,7 @@ interface DashboardProps {
 export default function Dashboard({ user }: DashboardProps) {
   const router = useRouter();
   const { logout } = useAuth0();
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
@@ -214,17 +216,17 @@ export default function Dashboard({ user }: DashboardProps) {
       )}
       
       {!showJourneyPlanner && (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+        <div className={`min-h-screen ${isDarkMode ? 'bg-gradient-to-b from-gray-900 to-black' : 'bg-gradient-to-b from-gray-50 to-white'}`}>
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-100 sticky top-0 z-40">
+      <header className={`${isDarkMode ? 'bg-gray-900/80' : 'bg-white/80'} backdrop-blur-sm shadow-sm ${isDarkMode ? 'border-gray-700' : 'border-gray-100'} sticky top-0 z-40`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             {/* Logo */}
             <div className="flex items-center">
-              <div className="font-extrabold text-2xl tracking-tight text-sky-700 flex items-center gap-3">
+              <div className={`font-extrabold text-2xl tracking-tight ${isDarkMode ? 'text-sky-300' : 'text-sky-700'} flex items-center gap-3`}>
                 <div className="text-3xl">VACAI</div>
                 <div className="text-xl">🌍</div>
-                <span className="text-sm font-medium text-gray-500 ml-2">Plan • Dream • Go</span>
+                <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} ml-2`}>Plan • Dream • Go</span>
               </div>
             </div>
             
@@ -232,42 +234,51 @@ export default function Dashboard({ user }: DashboardProps) {
             <nav className="hidden md:flex items-center space-x-6">
               <button
                 onClick={(e) => { e.preventDefault(); setShowHelpModal(true); }}
-                className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer"
+                className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer`}
               >
                 Help/FAQ
               </button>
               <button
                 onClick={(e) => { e.preventDefault(); setShowNotificationModal(true); }}
-                className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer"
+                className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer`}
               >
                 Notifications
               </button>
-              <SavedPlansLink className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer">
+              <SavedPlansLink className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer`}>
                 Saved
               </SavedPlansLink>
-              <SettingsLink className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer">
+              <SettingsLink className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer`}>
                 Settings
               </SettingsLink>
               <button
                 onClick={(e) => { e.preventDefault(); setShowContactModal(true); }}
-                className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer"
+                className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer`}
               >
                 Contact
               </button>
               
+              {/* Theme Toggle Button */}
+              <button
+                onClick={toggleDarkMode}
+                className={`${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 text-yellow-400' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'} px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'} hover:shadow-sm`}
+                title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              >
+                {isDarkMode ? '☀️' : '🌙'}
+              </button>
+              
               <div className="relative group profile-dropdown">
-                <button className="bg-white/90 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border border-gray-200 hover:border-gray-300 hover:shadow-sm">
+                <button className={`${isDarkMode ? 'bg-gray-800/90 hover:bg-gray-700 text-gray-200' : 'bg-white/90 hover:bg-gray-50 text-gray-700'} px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border ${isDarkMode ? 'border-gray-600 hover:border-gray-500' : 'border-gray-200 hover:border-gray-300'} hover:shadow-sm`}>
                   Profile
                 </button>
-                <div className="dropdown-menu absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 hidden z-50">
+                <div className={`dropdown-menu absolute right-0 mt-2 w-56 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg border ${isDarkMode ? 'border-gray-600' : 'border-gray-200'} hidden z-50`}>
                   <div className="py-2">
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900">{user.name || 'User'}</p>
-                      <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                    <div className={`px-4 py-3 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-100'}`}>
+                      <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>{user.name || 'User'}</p>
+                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} truncate`}>{user.email}</p>
                     </div>
                     <button
                       onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                      className={`block w-full text-left px-4 py-2 text-sm ${isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'} transition-colors duration-200`}
                     >
                       Sign Out
                     </button>
@@ -471,18 +482,18 @@ export default function Dashboard({ user }: DashboardProps) {
       </section>
 
       {/* Planning History Section (subtle nature overlay) */}
-      <section className="py-20 px-4 bg-gray-50 section fade-in">
+      <section className={`py-20 px-4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'} section fade-in`}>
         <div className="max-w-5xl mx-auto text-center">
           <div className="mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className={`text-3xl md:text-4xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-4`}>
               Your Planning Journey
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto`}>
               Track your vacation planning progress and revisit your favorite destinations
             </p>
           </div>
           
-          <div className="bg-white rounded-2xl p-8 md:p-12 shadow-xl border border-gray-200 relative overflow-hidden">
+          <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-white'} rounded-2xl p-8 md:p-12 shadow-xl border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} relative overflow-hidden`}>
             {/* Background pattern */}
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0" style={{
@@ -498,10 +509,10 @@ export default function Dashboard({ user }: DashboardProps) {
                 </svg>
               </div>
               
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-4`}>
                 Access Your Planning History
               </h3>
-              <p className="text-gray-600 mb-8 max-w-md mx-auto">
+              <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-8 max-w-md mx-auto`}>
                 Review past vacation plans, saved destinations, and continue where you left off
               </p>
               
@@ -522,33 +533,33 @@ export default function Dashboard({ user }: DashboardProps) {
 
       {/* Debug Section - Remove in production */}
       {process.env.NODE_ENV === 'development' && (
-        <section className="py-12 px-4 bg-gray-100 border-t border-gray-200 section fade-in">
+        <section className={`py-12 px-4 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'} border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} section fade-in`}>
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-semibold mb-4 text-gray-900 flex items-center">
+            <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl p-6 shadow-sm border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+              <h3 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'} flex items-center`}>
                 <svg className="w-5 h-5 mr-2 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
                 Development Debug Info
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-6">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="font-medium text-gray-700">Current User</p>
-                  <p className="text-gray-600">{user.name || user.email}</p>
+                <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'} p-4 rounded-lg`}>
+                  <p className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>Current User</p>
+                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{user.name || user.email}</p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="font-medium text-gray-700">Existing Plan Status</p>
-                  <p className="text-gray-600">{hasExistingPlan ? 'Active Plan Found' : 'No Active Plan'}</p>
+                <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'} p-4 rounded-lg`}>
+                  <p className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>Existing Plan Status</p>
+                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{hasExistingPlan ? 'Active Plan Found' : 'No Active Plan'}</p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="font-medium text-gray-700">Total Users</p>
-                  <p className="text-gray-600">{users.length} registered</p>
+                <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'} p-4 rounded-lg`}>
+                  <p className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>Total Users</p>
+                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{users.length} registered</p>
                 </div>
               </div>
               
               {/* Test Buttons */}
-              <div className="border-t border-gray-200 pt-4">
-                <h4 className="text-md font-medium text-gray-800 mb-3">Testing Tools</h4>
+              <div className={`border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-200'} pt-4`}>
+                <h4 className={`text-md font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-800'} mb-3`}>Testing Tools</h4>
                 <div className="flex flex-wrap gap-3">
                   <button
                     onClick={handleTestOnboarding}

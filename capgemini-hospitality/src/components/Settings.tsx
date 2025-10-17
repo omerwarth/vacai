@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTheme } from './ThemeProvider';
 
 type UserSettings = {
   id: string;
@@ -20,7 +21,6 @@ type UserSettings = {
       relationship: string;
     };
   };
-  theme: "light" | "dark" | "auto";
   colorblindFilter: "none" | "protanopia" | "deuteranopia" | "tritanopia" | "achromatopsia";
   language: string;
   currency: string;
@@ -76,7 +76,6 @@ function getDefaultSettings(): UserSettings {
         relationship: "",
       },
     },
-    theme: "light",
     colorblindFilter: "none",
     language: "en",
     currency: "USD",
@@ -103,6 +102,7 @@ function getDefaultSettings(): UserSettings {
 }
 
 export default function Settings() {
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const [settings, setSettings] = useState<UserSettings>(getDefaultSettings());
   const [activeTab, setActiveTab] = useState<'profile' | 'general' | 'notifications' | 'privacy' | 'preferences'>('profile');
   const [hasChanges, setHasChanges] = useState(false);
@@ -111,33 +111,6 @@ export default function Settings() {
   useEffect(() => {
     const loadedSettings = loadSettings();
     setSettings(loadedSettings);
-    
-    // Apply theme immediately on component mount
-    const applyInitialTheme = (theme: string) => {
-      const html = document.documentElement;
-      const body = document.body;
-      
-      // Remove existing theme classes
-      html.classList.remove('theme-light', 'theme-dark', 'theme-auto');
-      body.classList.remove('bg-white', 'bg-gray-900', 'text-gray-900', 'text-white');
-      
-      // Apply theme class to html for CSS-based theming
-      html.classList.add(`theme-${theme}`);
-      
-      // Handle auto theme based on system preference
-      const isDarkMode = theme === 'dark' || 
-        (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      
-      if (isDarkMode) {
-        html.classList.add('dark');
-        body.classList.add('bg-gray-900', 'text-white');
-      } else {
-        html.classList.remove('dark');
-        body.classList.add('bg-white', 'text-gray-900');
-      }
-    };
-    
-    applyInitialTheme(loadedSettings.theme);
   }, []);
 
   // Apply colorblind filter to the document body
@@ -157,42 +130,7 @@ export default function Settings() {
     applyColorblindFilter(settings.colorblindFilter);
   }, [settings.colorblindFilter]);
 
-  // Apply theme to the document
-  useEffect(() => {
-    const applyTheme = (theme: string) => {
-      const html = document.documentElement;
-      const body = document.body;
-      
-      // Remove existing theme classes
-      html.classList.remove('theme-light', 'theme-dark', 'theme-auto');
-      body.classList.remove('bg-white', 'bg-gray-900', 'text-gray-900', 'text-white');
-      
-      // Apply theme class to html for CSS-based theming
-      html.classList.add(`theme-${theme}`);
-      
-      // Handle auto theme based on system preference
-      const isDarkMode = theme === 'dark' || 
-        (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      
-      if (isDarkMode) {
-        html.classList.add('dark');
-        body.classList.add('bg-gray-900', 'text-white');
-      } else {
-        html.classList.remove('dark');
-        body.classList.add('bg-white', 'text-gray-900');
-      }
-    };
 
-    applyTheme(settings.theme);
-
-    // Listen for system theme changes when auto mode is selected
-    if (settings.theme === 'auto') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const handleChange = () => applyTheme(settings.theme);
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
-    }
-  }, [settings.theme]);
 
   const saveSettings = () => {
     const updatedSettings = {
@@ -340,7 +278,7 @@ export default function Settings() {
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto py-12 px-4">
+    <div className={`max-w-6xl mx-auto py-12 px-4 min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-md">
@@ -350,9 +288,9 @@ export default function Settings() {
             </svg>
           </div>
           <div>
-            <h1 className="text-3xl font-extrabold text-indigo-700">Settings</h1>
-            <p className="text-sm text-indigo-600 mt-1">Customize your VacAI experience and preferences.</p>
-            <p className="text-sm text-indigo-700 font-semibold mt-2">
+            <h1 className={`text-3xl font-extrabold ${isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>Settings</h1>
+            <p className={`text-sm ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'} mt-1`}>Customize your VacAI experience and preferences.</p>
+            <p className={`text-sm ${isDarkMode ? 'text-indigo-300' : 'text-indigo-700'} font-semibold mt-2`}>
               Last updated: {new Date(settings.lastUpdated).toLocaleDateString()}
             </p>
           </div>
@@ -381,9 +319,9 @@ export default function Settings() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow border border-gray-100 overflow-hidden">
+      <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow border ${isDarkMode ? 'border-gray-700' : 'border-gray-100'} overflow-hidden`}>
         {/* Tab Navigation */}
-        <div className="border-b border-gray-200">
+        <div className={`border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
           <nav className="flex">
             {tabs.map((tab) => (
               <button
@@ -392,7 +330,7 @@ export default function Settings() {
                 className={`flex-1 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === tab.id
                     ? 'border-indigo-500 text-indigo-600 bg-indigo-50'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    : `border-transparent ${isDarkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`
                 }`}
               >
                 <span className="mr-2">{tab.icon}</span>
@@ -406,7 +344,7 @@ export default function Settings() {
         <div className="p-6">
           {activeTab === 'profile' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Profile Information</h2>
+              <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-4`}>Profile Information</h2>
               
               {/* Profile Picture Section */}
               <div className="flex items-center space-x-6 p-6 bg-gray-50 rounded-lg">
@@ -567,20 +505,24 @@ export default function Settings() {
 
           {activeTab === 'general' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">General Settings</h2>
+              <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-4`}>General Settings</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Theme</label>
-                  <select
-                    value={settings.theme}
-                    onChange={(e) => updateSetting('theme', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                  >
-                    <option value="light">🌞 Light</option>
-                    <option value="dark">🌙 Dark</option>
-                    <option value="auto">🔄 Auto</option>
-                  </select>
+                  <div className="flex items-center gap-4 p-3 border border-gray-300 rounded-md bg-gray-50">
+                    <span className="text-sm text-gray-600">Current: {isDarkMode ? '🌙 Dark Mode' : '🌞 Light Mode'}</span>
+                    <button
+                      onClick={toggleDarkMode}
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                        isDarkMode 
+                          ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' 
+                          : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                      }`}
+                    >
+                      {isDarkMode ? '☀️ Switch to Light' : '🌙 Switch to Dark'}
+                    </button>
+                  </div>
                 </div>
 
                 <div>
@@ -650,7 +592,7 @@ export default function Settings() {
 
           {activeTab === 'notifications' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Notification Preferences</h2>
+              <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-4`}>Notification Preferences</h2>
               
               <div className="space-y-4">
                 {Object.entries(settings.notifications).map(([key, value]) => (
@@ -686,7 +628,7 @@ export default function Settings() {
 
           {activeTab === 'privacy' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Privacy & Security</h2>
+              <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-4`}>Privacy & Security</h2>
               
               <div className="space-y-4">
                 {Object.entries(settings.privacy).map(([key, value]) => (
@@ -720,7 +662,7 @@ export default function Settings() {
 
           {activeTab === 'preferences' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Travel Preferences</h2>
+              <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-4`}>Travel Preferences</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
