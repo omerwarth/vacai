@@ -1,0 +1,91 @@
+ 'use client';
+
+import { useEffect } from 'react';
+
+type HelpModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+};
+
+function HelpFAQList() {
+  return (
+    <section className="space-y-4">
+      <details className="border rounded overflow-hidden">
+        <summary className="flex items-center justify-between px-4 py-3 bg-sky-50 hover:bg-sky-100 cursor-pointer font-medium">
+          <span>How do I start planning a trip?</span>
+          <svg className="w-4 h-4 text-sky-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </summary>
+        <div className="px-4 py-4 bg-transparent">
+          <p className="text-gray-700">Click the "Start Planning Your Journey" button on the homepage or dashboard to begin.</p>
+        </div>
+      </details>
+
+      <details className="border rounded overflow-hidden">
+        <summary className="flex items-center justify-between px-4 py-3 bg-rose-50 hover:bg-rose-100 cursor-pointer font-medium">
+          <span>How do I sign out?</span>
+          <svg className="w-4 h-4 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </summary>
+        <div className="px-4 py-4 bg-transparent">
+          <p className="text-gray-700">Open the Profile menu in the top-right and click "Sign Out".</p>
+        </div>
+      </details>
+
+      <details className="border rounded overflow-hidden">
+        <summary className="flex items-center justify-between px-4 py-3 bg-emerald-50 hover:bg-emerald-100 cursor-pointer font-medium">
+          <span>Still need help?</span>
+          <svg className="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </summary>
+        <div className="px-4 py-4 bg-transparent">
+          <p className="text-gray-700">Contact support at <a className="text-emerald-700 font-semibold underline" href="mailto:support@vacai.example">support@vacai.example</a>.</p>
+        </div>
+      </details>
+    </section>
+  );
+}
+
+export function HelpModal({ isOpen, onClose }: HelpModalProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop with subtle blur */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} aria-hidden="true"></div>
+
+      <div className="relative max-w-4xl w-full mx-4">
+        <div className="rounded-2xl shadow-2xl overflow-hidden relative border border-sky-100 max-h-[90vh] w-full bg-gradient-to-br from-white/60 to-sky-50/40 backdrop-blur-sm">
+          {/* Close button */}
+          <div className="absolute top-4 right-4 z-20">
+            <button
+              onClick={onClose}
+              className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white text-gray-700 shadow-sm border border-gray-200"
+              aria-label="Close help dialog"
+              title="Close"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Header */}
+          <div className="px-8 pt-10 pb-4">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-sky-800">Help & FAQ</h2>
+            <p className="text-sm text-sky-700 mt-2">Welcome — find answers to common questions and get quick help.</p>
+          </div>
+
+          {/* Scrollable content area */}
+          <div className="p-6 md:p-8 max-h-[75vh] overflow-auto">
+            <HelpFAQList />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
