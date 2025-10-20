@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth0 } from '@auth0/auth0-react';
-import LandingPage from "@/app/landingpage/page";
+import LandingPage from "@/components/LandingPage";
 import Dashboard from "@/components/Dashboard";
 
 export default function Home() {
