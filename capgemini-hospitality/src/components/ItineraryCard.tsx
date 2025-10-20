@@ -4,7 +4,6 @@ import React from "react";
 import {
   Itinerary,
   ItinerarySegment,
-  ItineraryBadgeList,
   ItinerarySegmentStop,
   ItinerarySegmentDetail,
   Badge,
@@ -22,11 +21,7 @@ import Calendar from "@kiwicom/orbit-components/lib/icons/Calendar";
 import Location from "@kiwicom/orbit-components/lib/icons/Location";
 import Money from "@kiwicom/orbit-components/lib/icons/Money";
 
-interface ItineraryCardProps {
-  // Props can be added here if needed in the future
-}
-
-const ItineraryCard: React.FC<ItineraryCardProps> = () => {
+const ItineraryCard: React.FC = () => {
   return (
     <Itinerary>
       <ItinerarySegment spaceAfter="medium">
