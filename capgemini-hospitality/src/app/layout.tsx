@@ -4,6 +4,7 @@ import "@kiwicom/orbit-components/lib/tailwind.css"; // Must be FIRST
 import "./globals.css";
 import Auth0ProviderWrapper from "../components/Auth0ProviderWrapper";
 import OrbitWrapper from "./OrbitWrapper";
+import { ThemeProvider } from "../components/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,9 +32,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Auth0ProviderWrapper>
-          <OrbitWrapper>
-            {children}
-          </OrbitWrapper>
+          <ThemeProvider>
+            <OrbitWrapper>
+              {children}
+            </OrbitWrapper>
+          </ThemeProvider>
         </Auth0ProviderWrapper>
       </body>
     </html>

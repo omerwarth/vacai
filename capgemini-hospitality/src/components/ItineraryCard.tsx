@@ -4,7 +4,6 @@ import React from "react";
 import {
   Itinerary,
   ItinerarySegment,
-  ItineraryStatus,
   ItineraryBadgeList,
   ItinerarySegmentStop,
   ItinerarySegmentDetail,
@@ -12,8 +11,6 @@ import {
 } from "@kiwicom/orbit-components";
 
 import Airplane from "@kiwicom/orbit-components/lib/icons/Airplane";
-import Clock from "@kiwicom/orbit-components/lib/icons/Clock";
-import FlightDirect from "@kiwicom/orbit-components/lib/icons/FlightDirect";
 import InformationCircle from "@kiwicom/orbit-components/lib/icons/InformationCircle";
 import Seat from "@kiwicom/orbit-components/lib/icons/Seat";
 import Entertainment from "@kiwicom/orbit-components/lib/icons/Entertainment";
@@ -25,19 +22,11 @@ import Calendar from "@kiwicom/orbit-components/lib/icons/Calendar";
 import Location from "@kiwicom/orbit-components/lib/icons/Location";
 import Money from "@kiwicom/orbit-components/lib/icons/Money";
 
-// Define the BadgeGroup component using ItineraryBadgeList
-const BadgeGroup: React.FC = () => (
-  <ItineraryBadgeList>
-    <Badge type="info">Direct</Badge>
-    <Badge type="success">Economy</Badge>
-  </ItineraryBadgeList>
-);
-
 interface ItineraryCardProps {
-  spaceAfter?: "none" | "smallest" | "small" | "normal" | "medium" | "large" | "largest";
+  // Props can be added here if needed in the future
 }
 
-const ItineraryCard: React.FC<ItineraryCardProps> = ({ spaceAfter = "normal" }) => {
+const ItineraryCard: React.FC<ItineraryCardProps> = () => {
   return (
     <Itinerary>
       <ItinerarySegment spaceAfter="medium">
