@@ -417,9 +417,8 @@ export default function Dashboard({ user }: DashboardProps) {
         </div>
       </section>
 
-      {/* Debug Section - Remove in production */}
-      {process.env.NODE_ENV === 'development' && (
-        <section className="py-12 px-4 bg-gray-100 border-t border-gray-200">
+      {/* Debug Section - Now visible in all environments */}
+      <section className="py-12 px-4 bg-gray-100 border-t border-gray-200">
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
               <h3 className="text-lg font-semibold mb-4 text-gray-900 flex items-center">
@@ -493,10 +492,9 @@ export default function Dashboard({ user }: DashboardProps) {
             </div>
           </div>
         </section>
-      )}
       
       {/* Profile Manager Debug Section */}
-      {process.env.NODE_ENV === 'development' && showProfileManager && (
+      {showProfileManager && (
         <section className="py-12 px-4 bg-blue-50 border-t border-blue-200">
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-xl p-6 shadow-sm border border-blue-200">
