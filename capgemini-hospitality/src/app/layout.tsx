@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import "@kiwicom/orbit-components/lib/tailwind.css"; // Must be FIRST
 import "./globals.css";
 import Auth0ProviderWrapper from "../components/Auth0ProviderWrapper";
-import { ThemeProvider } from "../components/ThemeProvider";
+import OrbitWrapper from "./OrbitWrapper";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -20,19 +22,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider>
-          <Auth0ProviderWrapper>
+        <Auth0ProviderWrapper>
+          <OrbitWrapper>
             {children}
-          </Auth0ProviderWrapper>
-        </ThemeProvider>
+          </OrbitWrapper>
+        </Auth0ProviderWrapper>
       </body>
     </html>
   );

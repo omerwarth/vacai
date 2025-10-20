@@ -120,3 +120,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Orbit Components Text Color Override - Minimal and targeted */
+.orbit-override span,
+.orbit-override p,
+.orbit-override div:not([class*="icon"]):not([class*="Icon"]) {
+  color: #374151 !important;
+}
+
+/* Ensure icons and visual elements are preserved */
+.orbit-override svg,
+.orbit-override [class*="icon"],
+.orbit-override [class*="Icon"] {
+  color: inherit !important;
+}
