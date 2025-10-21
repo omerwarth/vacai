@@ -153,6 +153,12 @@ export default function Dashboard({ user }: DashboardProps) {
             
             {/* Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
+              <button
+                onClick={() => router.push('/explore')}
+                className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline"
+              >
+                Explore
+              </button>
               <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">Help/FAQ</a>
               <a href="#" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline">
                 Notifications
@@ -265,6 +271,73 @@ export default function Dashboard({ user }: DashboardProps) {
           </div>
         </section>
       )}
+
+      {/* Explore Community Itineraries Section */}
+      <section className="py-20 px-4 bg-gradient-to-br from-purple-50 to-blue-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Explore Community Itineraries
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Get inspired by trips created by our community of travelers
+            </p>
+          </div>
+          
+          <div className="flex justify-center">
+            <button
+              onClick={() => router.push('/explore')}
+              className="group relative inline-flex items-center px-12 py-5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 overflow-hidden"
+            >
+              <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></span>
+              <svg className="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="relative">Browse Itineraries</span>
+              <svg className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Preview Cards */}
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300">
+              <div className="text-4xl mb-3">🗼</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Paris Adventures</h3>
+              <p className="text-gray-600 text-sm mb-3">Discover romantic escapes and cultural experiences</p>
+              <div className="flex items-center text-sm text-gray-500">
+                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                342 likes
+              </div>
+            </div>
+            <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300">
+              <div className="text-4xl mb-3">🏖️</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Beach Paradises</h3>
+              <p className="text-gray-600 text-sm mb-3">Relax on the most beautiful shores worldwide</p>
+              <div className="flex items-center text-sm text-gray-500">
+                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                891 likes
+              </div>
+            </div>
+            <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300">
+              <div className="text-4xl mb-3">🏙️</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Urban Explorations</h3>
+              <p className="text-gray-600 text-sm mb-3">Experience vibrant city life and culture</p>
+              <div className="flex items-center text-sm text-gray-500">
+                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                567 likes
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Traveler Profile Management Section */}
       <section className="py-20 px-4 bg-gray-50">
