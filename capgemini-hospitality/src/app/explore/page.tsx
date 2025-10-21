@@ -2,7 +2,58 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import ItineraryCard from '@/components/ItineraryCard';
+
+// Category data with placeholder itineraries
+const categories = [
+  {
+    id: 'beach-paradise',
+    name: 'Beach Paradise',
+    description: 'Relax on pristine shores and tropical getaways',
+    icon: '🏖️',
+    color: 'from-cyan-500 to-blue-600',
+    itineraryCount: 24,
+  },
+  {
+    id: 'cultural-heritage',
+    name: 'Cultural Heritage',
+    description: 'Explore historic sites and traditional experiences',
+    icon: '🏛️',
+    color: 'from-amber-500 to-orange-600',
+    itineraryCount: 18,
+  },
+  {
+    id: 'food-adventure',
+    name: 'Food Adventure',
+    description: 'Culinary journeys and gastronomic delights',
+    icon: '🍜',
+    color: 'from-red-500 to-pink-600',
+    itineraryCount: 32,
+  },
+  {
+    id: 'luxury-escapes',
+    name: 'Luxury Escapes',
+    description: 'Premium experiences and high-end destinations',
+    icon: '💎',
+    color: 'from-purple-500 to-indigo-600',
+    itineraryCount: 15,
+  },
+  {
+    id: 'adventure-sports',
+    name: 'Adventure & Sports',
+    description: 'Thrilling activities and outdoor exploration',
+    icon: '⛰️',
+    color: 'from-green-500 to-teal-600',
+    itineraryCount: 21,
+  },
+  {
+    id: 'city-exploration',
+    name: 'City Exploration',
+    description: 'Urban adventures and metropolitan experiences',
+    icon: '🏙️',
+    color: 'from-slate-500 to-gray-600',
+    itineraryCount: 28,
+  },
+];
 
 // Dummy user data
 const dummyItineraries = [
@@ -88,20 +139,7 @@ const dummyItineraries = [
 
 export default function ExplorePage() {
   const router = useRouter();
-  const [selectedFilter, setSelectedFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<string>("popular");
-
-  const filters = ["all", "Cultural", "Beach", "Food", "Adventure", "Luxury", "Romance"];
-
-  const filteredItineraries = selectedFilter === "all" 
-    ? dummyItineraries 
-    : dummyItineraries.filter(item => item.tags.includes(selectedFilter));
-
-  const sortedItineraries = [...filteredItineraries].sort((a, b) => {
-    if (sortBy === "popular") return b.likes - a.likes;
-    if (sortBy === "saves") return b.saves - a.saves;
-    return 0;
-  });
+  const [viewMode, setViewMode] = useState<'categories' | 'all'>('categories');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -119,8 +157,8 @@ export default function ExplorePage() {
                 </svg>
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Explore Itineraries</h1>
-                <p className="text-sm text-gray-600">Discover trips created by our community</p>
+                <h1 className="text-2xl font-bold text-gray-900">Explore by Category</h1>
+                <p className="text-sm text-gray-600">Browse curated collections of travel experiences</p>
               </div>
             </div>
             
@@ -134,140 +172,115 @@ export default function ExplorePage() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filters and Sort */}
-        <div className="mb-8 space-y-4">
-          {/* Filter Tags */}
-          <div className="flex flex-wrap gap-2">
-            {filters.map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setSelectedFilter(filter)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedFilter === filter
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                }`}
-              >
-                {filter.charAt(0).toUpperCase() + filter.slice(1)}
-              </button>
-            ))}
-          </div>
-
-          {/* Sort Options */}
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-600">
-              {sortedItineraries.length} itineraries found
-            </p>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Sort by:</span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="popular">Most Popular</option>
-                <option value="saves">Most Saved</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Itinerary Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedItineraries.map((itinerary) => (
-            <div
-              key={itinerary.id}
-              className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer group"
-              onClick={() => {/* Future: navigate to itinerary detail */}}
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => router.push(`/explore/${category.id}`)}
+              className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2"
             >
-              {/* Thumbnail */}
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src={itinerary.thumbnail}
-                  alt={itinerary.destination}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                />
-                <div className="absolute top-3 right-3 bg-white px-3 py-1 rounded-full text-xs font-semibold text-gray-700 shadow-md">
-                  {itinerary.duration}
+              {/* Gradient Background */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+              
+              <div className="relative p-8">
+                {/* Icon */}
+                <div className="text-6xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
+                  {category.icon}
                 </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-5">
-                {/* User Info */}
-                <div className="flex items-center space-x-3 mb-3">
-                  <img
-                    src={itinerary.userAvatar}
-                    alt={itinerary.userName}
-                    className="w-10 h-10 rounded-full border-2 border-gray-200"
-                  />
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">{itinerary.userName}</p>
-                    <p className="text-xs text-gray-500">Travel Creator</p>
-                  </div>
-                </div>
-
-                {/* Destination */}
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{itinerary.destination}</h3>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{itinerary.description}</p>
-
-                {/* Tags */}
-                <div className="flex flex-wrap gap-1.5 mb-4">
-                  {itinerary.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md font-medium"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Budget */}
-                <div className="flex items-center mb-4">
-                  <svg className="w-4 h-4 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                
+                {/* Content */}
+                <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                  {category.name}
+                </h3>
+                <p className="text-gray-600 mb-4 text-sm">
+                  {category.description}
+                </p>
+                
+                {/* Count Badge */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-700">
+                    {category.itineraryCount} itineraries
+                  </span>
+                  <svg 
+                    className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
-                  <span className="text-sm font-semibold text-gray-700">{itinerary.budget}</span>
-                </div>
-
-                {/* Stats */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                  <div className="flex items-center space-x-4">
-                    <button className="flex items-center space-x-1 text-gray-600 hover:text-red-500 transition-colors">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                      <span className="text-sm font-medium">{itinerary.likes}</span>
-                    </button>
-                    <button className="flex items-center space-x-1 text-gray-600 hover:text-blue-500 transition-colors">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                      </svg>
-                      <span className="text-sm font-medium">{itinerary.saves}</span>
-                    </button>
-                  </div>
-                  <button className="px-4 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
-                    View
-                  </button>
                 </div>
               </div>
-            </div>
+              
+              {/* Decorative Corner */}
+              <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${category.color} opacity-5 rounded-bl-full`}></div>
+            </button>
           ))}
         </div>
-
-        {/* Empty State */}
-        {sortedItineraries.length === 0 && (
-          <div className="text-center py-16">
-            <svg className="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No itineraries found</h3>
-            <p className="text-gray-600">Try adjusting your filters to see more results</p>
+        
+        {/* Featured Section */}
+        <div className="mt-16">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-3">Trending This Week</h2>
+            <p className="text-gray-600">Popular itineraries from our community</p>
           </div>
-        )}
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {dummyItineraries.slice(0, 3).map((itinerary) => (
+              <div
+                key={itinerary.id}
+                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer group"
+              >
+                {/* Thumbnail */}
+                <div className="relative h-48 overflow-hidden">
+                  <img
+                    src={itinerary.thumbnail}
+                    alt={itinerary.destination}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                  <div className="absolute top-3 right-3 bg-white px-3 py-1 rounded-full text-xs font-semibold text-gray-700 shadow-md">
+                    {itinerary.duration}
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-5">
+                  {/* User Info */}
+                  <div className="flex items-center space-x-3 mb-3">
+                    <img
+                      src={itinerary.userAvatar}
+                      alt={itinerary.userName}
+                      className="w-10 h-10 rounded-full border-2 border-gray-200"
+                    />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{itinerary.userName}</p>
+                      <p className="text-xs text-gray-500">Travel Creator</p>
+                    </div>
+                  </div>
+
+                  {/* Destination */}
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">{itinerary.destination}</h3>
+                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{itinerary.description}</p>
+
+                  {/* Stats */}
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-1 text-gray-600">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
+                        </svg>
+                        <span className="text-sm font-medium">{itinerary.likes}</span>
+                      </div>
+                    </div>
+                    <span className="text-sm font-semibold text-green-600">{itinerary.budget}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
