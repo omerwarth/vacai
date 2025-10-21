@@ -1,5 +1,135 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
+import {
+  Itinerary,
+  ItinerarySegment,
+  ItinerarySegmentStop,
+  ItinerarySegmentDetail,
+  Badge,
+} from "@kiwicom/orbit-components";
+import * as Icons from "@kiwicom/orbit-components/lib/icons";
+
+// Orbit's badge types — defined inline, no interface needed
+type BadgeType = "info" | "success" | "warning" | "critical" | "neutral";
+
+// Helper to safely render icons
+const getIconComponent = (iconName: unknown) => {
+  if (typeof iconName !== "string") return null;
+  const IconComponent = (Icons as Record<string, React.ElementType>)[iconName];
+  return IconComponent ? <IconComponent ariaLabel={iconName.toLowerCase()} /> : null;
+};
+
+// Type guard to verify objects
+const isRecord = (val: unknown): val is Record<string, unknown> =>
+  typeof val === "object" && val !== null;
+
+const ItineraryCard: React.FC = () => {
+  const [itineraryData, setItineraryData] = useState<unknown>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchItinerary = async () => {
+      try {
+        const res = await fetch("/api/itinerary");
+        if (!res.ok) throw new Error("Failed to fetch itinerary");
+        const data: unknown = await res.json();
+        setItineraryData(data);
+      } catch (err) {
+        console.error("Error fetching itinerary:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItinerary();
+  }, []);
+
+  if (loading) return <p>Loading itinerary...</p>;
+  if (!isRecord(itineraryData)) return <p>No itinerary found.</p>;
+
+  const segments = Array.isArray(itineraryData.segments)
+    ? itineraryData.segments
+    : [];
+
+  return (
+    <Itinerary>
+      {segments.map((segment, i) => {
+        if (!isRecord(segment)) return null;
+
+        const stops = Array.isArray(segment.stops) ? segment.stops : [];
+        const detail = isRecord(segment.detail) ? segment.detail : null;
+
+        return (
+          <ItinerarySegment key={i} spaceAfter="medium">
+            {/* Stops */}
+            {stops.map((stop, j) => {
+              if (!isRecord(stop)) return null;
+              return (
+                <ItinerarySegmentStop
+                  key={j}
+                  city={String(stop.city ?? "")}
+                  station={String(stop.station ?? "")}
+                  date={String(stop.date ?? "")}
+                  time={String(stop.time ?? "")}
+                />
+              );
+            })}
+
+            {/* Detail */}
+            {detail && (
+              <ItinerarySegmentDetail
+                icon={getIconComponent(detail.icon)}
+                duration={typeof detail.duration === "string" ? detail.duration : ""}
+                summary={
+                  isRecord(detail.badge) ? (
+                    <Badge
+                      type={
+                        (typeof detail.badge.type === "string" &&
+                        ["info", "success", "warning", "critical", "neutral"].includes(
+                          detail.badge.type
+                        )
+                          ? (detail.badge.type as BadgeType)
+                          : "info")
+                      }
+                    >
+                      {String(detail.badge.text ?? "")}
+                    </Badge>
+                  ) : null
+                }
+                content={
+                  Array.isArray(detail.content)
+                    ? detail.content
+                        .filter(isRecord)
+                        .map((section) => ({
+                          title: String(section.title ?? ""),
+                          items: Array.isArray(section.items)
+                            ? section.items
+                                .filter(isRecord)
+                                .map((item) => ({
+                                  icon: getIconComponent(item.icon),
+                                  name: String(item.name ?? ""),
+                                  value: String(item.value ?? ""),
+                                }))
+                            : [],
+                        }))
+                    : []
+                }
+              />
+            )}
+          </ItinerarySegment>
+        );
+      })}
+    </Itinerary>
+  );
+};
+
+export default ItineraryCard;
+
+
+/*
+"use client";
+
 import React from "react";
 import {
   Itinerary,
@@ -100,7 +230,7 @@ const ItineraryCard: React.FC = () => {
         />
       </ItinerarySegment>
 
-      {/* Hotel Accommodation Segment */}
+      {/* Hotel Accommodation Segment }
       <ItinerarySegment spaceAfter="medium">
         <ItinerarySegmentStop
           city="Prague"
@@ -167,7 +297,7 @@ const ItineraryCard: React.FC = () => {
         />
       </ItinerarySegment>
 
-      {/* Activities Segment */}
+      {/* Activities Segment }
       <ItinerarySegment spaceAfter="medium">
         <ItinerarySegmentStop
           city="Prague"
@@ -224,7 +354,7 @@ const ItineraryCard: React.FC = () => {
         />
       </ItinerarySegment>
 
-      {/* Food & Dining Segment */}
+      {/* Food & Dining Segment }
       <ItinerarySegment spaceAfter="medium">
         <ItinerarySegmentStop
           city="Prague"
@@ -295,3 +425,5 @@ const ItineraryCard: React.FC = () => {
 };
 
 export default ItineraryCard;
+
+*/

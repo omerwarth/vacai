@@ -1,54 +1,45 @@
-// API Configuration for External Azure Functions App
-// This file manages the endpoints for your separate Azure Functions App
+// API Configuration for Azure Functions
 
 interface ApiConfig {
   baseUrl: string;
   endpoints: {
     signin: string;
     signup: string;
-    users: string;
     travelerProfiles: string;
     userPreferences: string;
+    itineraries: string;
   };
 }
 
-// Configure your Azure Functions App URL
-// Replace 'your-functions-app-name' with your actual Azure Functions App name
 const getApiConfig = (): ApiConfig => {
-  // In development, you might want to use localhost or a dev Functions App
-  // In production, use your production Azure Functions App URL
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  
-  // Option 1: Use environment variables (recommended)
+  const isDevelopment = process.env.NODE_ENV === "development";
   const functionsAppUrl = process.env.NEXT_PUBLIC_AZURE_FUNCTIONS_URL;
-  
-  // Option 2: Hardcode for different environments (fallback)
-  const defaultBaseUrl = isDevelopment 
-    ? 'http://localhost:7000' // Local development - Updated to match your Azure Functions port
-    : 'https://capgemini-hospitality-api-cfhkgge6a0h6ach6.eastus2-01.azurewebsites.net'; // Production Functions App
-  
+
+  const defaultBaseUrl = isDevelopment
+    ? "http://localhost:7071"
+    : "https://capgemini-hospitality-api-cfhkgge6a0h6ach6.eastus2-01.azurewebsites.net";
+
   const baseUrl = functionsAppUrl || defaultBaseUrl;
-  
+
   return {
     baseUrl,
     endpoints: {
       signin: `${baseUrl}/api/signin`,
       signup: `${baseUrl}/api/signup`,
-      users: `${baseUrl}/api/users`,
       travelerProfiles: `${baseUrl}/api/traveler-profiles`,
-      userPreferences: `${baseUrl}/api/user-preferences`
-    }
+      userPreferences: `${baseUrl}/api/user-preferences`,
+      itineraries: `${baseUrl}/api/itinerary`,
+    },
   };
 };
 
 export const apiConfig = getApiConfig();
 
-// Type definitions for traveler profiles and preferences
 export interface TravelerProfile {
   id: string;
-  userId: string; // Auth0 user ID who owns this profile
+  userId: string;
   name: string;
-  relationship: string; // 'self', 'spouse', 'child', 'friend', etc.
+  relationship: string;
   isDefault: boolean;
   createdAt: string;
   updatedAt: string;
@@ -56,8 +47,8 @@ export interface TravelerProfile {
 
 export interface TravelPreferences {
   id: string;
-  userId: string; // Auth0 user ID who owns this
-  profileId: string; // Which traveler profile these preferences belong to
+  userId: string;
+  profileId: string;
   name: string;
   transportation: string;
   schedule_flexibility: number;
@@ -71,314 +62,194 @@ export interface TravelPreferences {
   updatedAt: string;
 }
 
-// API service functions
+export interface Itinerary {
+  id: string;
+  userId: string;
+  profileId: string;
+  title?: string;
+  startDate?: string;
+  endDate?: string;
+  airplane?: string;
+  seat?: string;
+  car?: string;
+  entertainment?: string;
+  accommodation?: string;
+  hotel?: string;
+  location?: string;
+  money?: string;
+  currency?: string;
+  budget?: number;
+  activity?: string[];
+  food?: string[];
+  restaurants?: string[];
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+const handleError = async (response: Response, fallbackMsg: string) => {
+  const text = await response.text();
+  try {
+    const data = JSON.parse(text);
+    throw new Error(data.error || fallbackMsg);
+  } catch {
+    throw new Error(`${fallbackMsg}: ${text || response.statusText}`);
+  }
+};
+
+// API SERVICE 
+
 export const apiService = {
   async signin(email: string, password: string) {
-    const response = await fetch(apiConfig.endpoints.signin, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    const res = await fetch(apiConfig.endpoints.signin, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      
-      try {
-        const errorData = JSON.parse(errorText);
-        throw new Error(errorData.error || `Server error: ${response.status}`);
-      } catch {
-        throw new Error(`Server error (${response.status}): ${errorText || 'Unknown error'}`);
-      }
-    }
-    
-    return response.json();
+    if (!res.ok) await handleError(res, "Failed to sign in");
+    return res.json();
   },
 
-  async signup(userData: {
-    email: string;
-    password: string;
-    firstName?: string;
-    lastName?: string;
-  }) {
-    const response = await fetch(apiConfig.endpoints.signup, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+  async signup(userData: { email: string; password: string; firstName?: string; lastName?: string }) {
+    const res = await fetch(apiConfig.endpoints.signup, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(userData),
     });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      throw new Error(errorData.error || 'Sign up failed');
-    }
-    
-    return response.json();
+    if (!res.ok) await handleError(res, "Failed to sign up");
+    return res.json();
   },
 
-  async getUsers() {
-    const response = await fetch(apiConfig.endpoints.users, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      throw new Error(errorData.error || 'Failed to fetch users');
-    }
-    
-    return response.json();
-  },
-
-  // Traveler Profile Management
+  // TRAVELER PROFILES 
   async getTravelerProfiles(userId: string) {
-    const encodedUserId = encodeURIComponent(userId);
-    
-    const response = await fetch(`${apiConfig.endpoints.travelerProfiles}/${encodedUserId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      try {
-        const errorData = JSON.parse(errorText);
-        throw new Error(errorData.error || `Failed to fetch traveler profiles: ${response.status}`);
-      } catch {
-        throw new Error(`Failed to fetch traveler profiles (${response.status}): ${errorText || 'Unknown error'}`);
-      }
-    }
-    
-    return response.json();
+    const url = `${apiConfig.endpoints.travelerProfiles}/${encodeURIComponent(userId)}`;
+    const res = await fetch(url, { method: "GET" });
+    if (!res.ok) await handleError(res, "Failed to fetch traveler profiles");
+    return res.json();
   },
 
-  async createTravelerProfile(userId: string, profileData: Omit<TravelerProfile, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) {
-    const encodedUserId = encodeURIComponent(userId);
-    
-    const response = await fetch(`${apiConfig.endpoints.travelerProfiles}/${encodedUserId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId, ...profileData }),
+  async createTravelerProfile(profile: Partial<TravelerProfile>) {
+    const res = await fetch(apiConfig.endpoints.travelerProfiles, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(profile),
     });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      try {
-        const errorData = JSON.parse(errorText);
-        throw new Error(errorData.error || `Failed to create traveler profile: ${response.status}`);
-      } catch {
-        throw new Error(`Failed to create traveler profile (${response.status}): ${errorText || 'Unknown error'}`);
-      }
-    }
-    
-    return response.json();
+    if (!res.ok) await handleError(res, "Failed to create traveler profile");
+    return res.json();
   },
 
-  async updateTravelerProfile(profileId: string, profileData: Partial<TravelerProfile>) {
-    const response = await fetch(`${apiConfig.endpoints.travelerProfiles}/${profileData.userId}/${profileId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(profileData),
+  async updateTravelerProfile(profileId: string, updates: Partial<TravelerProfile>) {
+    const url = `${apiConfig.endpoints.travelerProfiles}/${encodeURIComponent(profileId)}`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
     });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Update Profile Error response:', errorText);
-      
-      try {
-        const errorData = JSON.parse(errorText);
-        throw new Error(errorData.error || `Failed to update traveler profile: ${response.status}`);
-      } catch {
-        throw new Error(`Failed to update traveler profile (${response.status}): ${errorText || 'Unknown error'}`);
-      }
-    }
-    
-    return response.json();
+    if (!res.ok) await handleError(res, "Failed to update traveler profile");
+    return res.json();
   },
 
-  async deleteTravelerProfile(profileId: string, userId: string) {
-    const response = await fetch(`${apiConfig.endpoints.travelerProfiles}/${userId}/${profileId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Delete Profile Error response:', errorText);
-      
-      try {
-        const errorData = JSON.parse(errorText);
-        throw new Error(errorData.error || `Failed to delete traveler profile: ${response.status}`);
-      } catch {
-        throw new Error(`Failed to delete traveler profile (${response.status}): ${errorText || 'Unknown error'}`);
-      }
-    }
-    
-    return response.json();
+  async deleteTravelerProfile(profileId: string) {
+    const url = `${apiConfig.endpoints.travelerProfiles}/${encodeURIComponent(profileId)}`;
+    const res = await fetch(url, { method: "DELETE" });
+    if (!res.ok) await handleError(res, "Failed to delete traveler profile");
+    return res.json();
   },
 
-  // Travel Preferences Management
-  async getTravelPreferences(userId: string, profileId?: string) {
-    const url = profileId 
-      ? `${apiConfig.endpoints.userPreferences}/${userId}/${profileId}`
-      : `${apiConfig.endpoints.userPreferences}/${userId}`;
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Get Preferences Error response:', errorText);
-      
-      try {
-        const errorData = JSON.parse(errorText);
-        throw new Error(errorData.error || `Failed to fetch travel preferences: ${response.status}`);
-      } catch {
-        throw new Error(`Failed to fetch travel preferences (${response.status}): ${errorText || 'Unknown error'}`);
-      }
-    }
-    
-    return response.json();
+  // USER PREFERENCES
+  async getUserPreferences(userId: string, profileId?: string) {
+    const url = profileId
+      ? `${apiConfig.endpoints.userPreferences}/${encodeURIComponent(userId)}/${encodeURIComponent(profileId)}`
+      : `${apiConfig.endpoints.userPreferences}/${encodeURIComponent(userId)}`;
+
+    const res = await fetch(url, { method: "GET" });
+    if (!res.ok) await handleError(res, "Failed to fetch user preferences");
+    return res.json();
   },
 
-  async saveTravelPreferences(userId: string, profileId: string, preferences: Omit<TravelPreferences, 'id' | 'userId' | 'profileId' | 'createdAt' | 'updatedAt'>) {
-    // Helper function to remove emojis from strings - comprehensive emoji removal
-    const removeEmojis = (str: string): string => {
+  async saveUserPreferences(userId: string, profileId: string, prefs: Partial<TravelPreferences>) {
+    const removeEmojis = (str: string = ""): string => {
       return str
-        // Remove most common emoji ranges
-        .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // Emoticons
-        .replace(/[\u{1F300}-\u{1F5FF}]/gu, '') // Miscellaneous Symbols and Pictographs
-        .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // Transport and Map Symbols
-        .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '') // Regional Indicator Symbols
-        .replace(/[\u{2600}-\u{26FF}]/gu, '') // Miscellaneous Symbols
-        .replace(/[\u{2700}-\u{27BF}]/gu, '') // Dingbats
-        .replace(/[\u{1F900}-\u{1F9FF}]/gu, '') // Supplemental Symbols and Pictographs
-        .replace(/[\u{1FA00}-\u{1FA6F}]/gu, '') // Chess Symbols
-        .replace(/[\u{1FA70}-\u{1FAFF}]/gu, '') // Symbols and Pictographs Extended-A
-        .replace(/[\u{FE00}-\u{FE0F}]/gu, '') // Variation Selectors
-        .replace(/[\u{200D}]/gu, '') // Zero Width Joiner
+        .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, "")
+        .replace(/\p{Emoji_Modifier_Base}\p{Emoji_Modifier}?/gu, "")
         .trim();
     };
-    
-    // Clean preferences by removing emojis
+
     const cleanedPreferences = {
-      ...preferences,
-      transportation: removeEmojis(preferences.transportation),
-      accommodation: removeEmojis(preferences.accommodation),
-      activities: preferences.activities.map(activity => removeEmojis(activity)),
-      dietary_restrictions: preferences.dietary_restrictions.map(restriction => removeEmojis(restriction)),
-      trip_length: removeEmojis(preferences.trip_length),
-      trip_vibe: preferences.trip_vibe.map(vibe => removeEmojis(vibe))
+      ...prefs,
+      transportation: removeEmojis(prefs.transportation || ""),
+      accommodation: removeEmojis(prefs.accommodation || ""),
+      activities: (prefs.activities || []).map((a) => removeEmojis(a)),
+      dietary_restrictions: (prefs.dietary_restrictions || []).map((r) => removeEmojis(r)),
+      trip_length: removeEmojis(prefs.trip_length || ""),
+      trip_vibe: (prefs.trip_vibe || []).map((v) => removeEmojis(v)),
     };
-    
-    const requestBody = { userId, profileId, ...cleanedPreferences };
-    
-    // Validate required fields before sending
-    if (!requestBody.name) {
-      throw new Error('Preferences name is required');
-    }
-    
-    // URL encode the userId to handle special characters like | in auth0|123456
-    const encodedUserId = encodeURIComponent(userId);
-    const encodedProfileId = encodeURIComponent(profileId);
-    const fullUrl = `${apiConfig.endpoints.userPreferences}/${encodedUserId}/${encodedProfileId}`;
-    
-    const response = await fetch(fullUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
+
+    const url = `${apiConfig.endpoints.userPreferences}/${encodeURIComponent(userId)}/${encodeURIComponent(profileId)}`;
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, profileId, ...cleanedPreferences }),
     });
-    
-    if (!response.ok) {
-      const contentType = response.headers.get('content-type');
-      
-      let errorText;
-      try {
-        if (contentType?.includes('application/json')) {
-          const errorData = await response.json();
-          errorText = JSON.stringify(errorData);
-        } else {
-          errorText = await response.text();
-        }
-      } catch {
-        errorText = 'Could not parse error response';
-      }
-      
-      try {
-        const errorData = JSON.parse(errorText);
-        throw new Error(errorData.error || `Failed to save travel preferences: ${response.status}`);
-      } catch {
-        throw new Error(`Failed to save travel preferences (${response.status}): ${errorText || 'Unknown error'}`);
-      }
-    }
-    
-    return response.json();
+
+    if (!res.ok) await handleError(res, "Failed to save user preferences");
+    return res.json();
   },
 
-  async updateTravelPreferences(preferencesId: string, preferences: Partial<TravelPreferences>) {
-    // Assuming you need userId for the URL pattern
-    const userId = preferences.userId || 'unknown';
-    const response = await fetch(`${apiConfig.endpoints.userPreferences}/${userId}/${preferencesId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(preferences),
+  async updateUserPreferences(prefId: string, userId: string, prefs: Partial<TravelPreferences>) {
+    const url = `${apiConfig.endpoints.userPreferences}/${encodeURIComponent(userId)}/${encodeURIComponent(prefId)}`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(prefs),
     });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Update Preferences Error response:', errorText);
-      
-      try {
-        const errorData = JSON.parse(errorText);
-        throw new Error(errorData.error || `Failed to update travel preferences: ${response.status}`);
-      } catch {
-        throw new Error(`Failed to update travel preferences (${response.status}): ${errorText || 'Unknown error'}`);
-      }
-    }
-    
-    return response.json();
+    if (!res.ok) await handleError(res, "Failed to update user preferences");
+    return res.json();
   },
 
-  async deleteTravelPreferences(preferencesId: string, userId: string) {
-    const response = await fetch(`${apiConfig.endpoints.userPreferences}/${userId}/${preferencesId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+  async deleteUserPreferences(prefId: string, userId: string) {
+    const url = `${apiConfig.endpoints.userPreferences}/${encodeURIComponent(userId)}/${encodeURIComponent(prefId)}`;
+    const res = await fetch(url, { method: "DELETE" });
+    if (!res.ok) await handleError(res, "Failed to delete user preferences");
+    return res.json();
+  },
+
+  // ITINERARIES
+  async getItineraries(userId: string, profileId?: string) {
+    const url = `${apiConfig.endpoints.itineraries}?userId=${encodeURIComponent(userId)}${
+      profileId ? `&profileId=${encodeURIComponent(profileId)}` : ""
+    }`;
+    const res = await fetch(url, { method: "GET" });
+    if (!res.ok) await handleError(res, "Failed to fetch itineraries");
+    return res.json();
+  },
+
+  async createItinerary(data: Partial<Itinerary>) {
+    const res = await fetch(apiConfig.endpoints.itineraries, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Delete Preferences Error response:', errorText);
-      
-      try {
-        const errorData = JSON.parse(errorText);
-        throw new Error(errorData.error || `Failed to delete travel preferences: ${response.status}`);
-      } catch {
-        throw new Error(`Failed to delete travel preferences (${response.status}): ${errorText || 'Unknown error'}`);
-      }
-    }
-    
-    return response.json();
-  }
+    if (!res.ok) await handleError(res, "Failed to create itinerary");
+    return res.json();
+  },
+
+  async updateItinerary(id: string, updates: Partial<Itinerary>) {
+    const url = `${apiConfig.endpoints.itineraries}?id=${encodeURIComponent(id)}`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+    });
+    if (!res.ok) await handleError(res, "Failed to update itinerary");
+    return res.json();
+  },
+
+  async deleteItinerary(id: string, userId: string) {
+    const url = `${apiConfig.endpoints.itineraries}?id=${encodeURIComponent(id)}&userId=${encodeURIComponent(userId)}`;
+    const res = await fetch(url, { method: "DELETE" });
+    if (!res.ok) await handleError(res, "Failed to delete itinerary");
+    return res.json();
+  },
 };
