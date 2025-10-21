@@ -51,6 +51,7 @@ export default function Dashboard({ user }: DashboardProps) {
   const [showProfileManager, setShowProfileManager] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<TravelerProfile | null>(null);
   const [showJourneyPlanner, setShowJourneyPlanner] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   // Vacation destination images for carousel (still used by ImageCarousel)
   const vacationImages = [
@@ -230,8 +231,8 @@ export default function Dashboard({ user }: DashboardProps) {
               </div>
             </div>
             
-            {/* Navigation */}
-            <nav className="hidden md:flex items-center space-x-6">
+            {/* Desktop Navigation */}
+            <nav className="flex items-center space-x-6">
               <button
                 onClick={(e) => { e.preventDefault(); setShowHelpModal(true); }}
                 className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer`}
@@ -286,9 +287,85 @@ export default function Dashboard({ user }: DashboardProps) {
                 </div>
               </div>
             </nav>
+
+            {/* Mobile menu button */}
+            <div className="hidden flex items-center space-x-3">
+              {/* Theme Toggle for Mobile */}
+              <button
+                onClick={toggleDarkMode}
+                className={`${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 text-yellow-400' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'} p-2 rounded-lg text-sm transition-all duration-200 border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}
+                title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              >
+                {isDarkMode ? '☀️' : '🌙'}
+              </button>
+              
+              <button
+                type="button"
+                className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-gray-900'} p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                aria-expanded="false"
+              >
+                <span className="sr-only">Open main menu</span>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </header>
+
+      {/* Mobile Navigation Menu */}
+      {showMobileMenu && (
+        <div className={`md:hidden ${isDarkMode ? 'bg-gray-900' : 'bg-white'} border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} shadow-lg`}>
+          <div className="px-4 py-2 space-y-1">
+            <button
+              onClick={(e) => { e.preventDefault(); setShowHelpModal(true); setShowMobileMenu(false); }}
+              className={`block w-full text-left px-3 py-2 rounded-md text-sm font-medium ${isDarkMode ? 'text-gray-300 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'} transition-colors`}
+            >
+              Help/FAQ
+            </button>
+            <button
+              onClick={(e) => { e.preventDefault(); setShowNotificationModal(true); setShowMobileMenu(false); }}
+              className={`block w-full text-left px-3 py-2 rounded-md text-sm font-medium ${isDarkMode ? 'text-gray-300 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'} transition-colors`}
+            >
+              Notifications
+            </button>
+            <SavedPlansLink className={`block w-full text-left px-3 py-2 rounded-md text-sm font-medium ${isDarkMode ? 'text-gray-300 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'} transition-colors cursor-pointer`}>
+              Saved Plans
+            </SavedPlansLink>
+            <SettingsLink className={`block w-full text-left px-3 py-2 rounded-md text-sm font-medium ${isDarkMode ? 'text-gray-300 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'} transition-colors cursor-pointer`}>
+              Settings
+            </SettingsLink>
+            <button
+              onClick={(e) => { e.preventDefault(); setShowContactModal(true); setShowMobileMenu(false); }}
+              className={`block w-full text-left px-3 py-2 rounded-md text-sm font-medium ${isDarkMode ? 'text-gray-300 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'} transition-colors`}
+            >
+              Contact
+            </button>
+            
+            {/* Mobile Profile Section */}
+            <div className={`border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} pt-2 mt-2`}>
+              <div className={`px-3 py-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-xs font-medium uppercase tracking-wide`}>
+                Account
+              </div>
+              <div className={`px-3 py-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} text-sm`}>
+                <p className="font-medium">{user.name || 'User'}</p>
+                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-xs truncate`}>{user.email}</p>
+              </div>
+              <button
+                onClick={() => {
+                  logout({ logoutParams: { returnTo: window.location.origin } });
+                  setShowMobileMenu(false);
+                }}
+                className={`block w-full text-left px-3 py-2 rounded-md text-sm font-medium ${isDarkMode ? 'text-red-400 hover:bg-gray-800 hover:text-red-300' : 'text-red-600 hover:bg-red-50 hover:text-red-700'} transition-colors`}
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section - Parallax Beach Sunrise */}
       <section

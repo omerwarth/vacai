@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
 type ColorblindFilter = 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia';
 
@@ -28,27 +28,47 @@ interface ThemeProviderProps {
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [colorblindFilter, setColorblindFilter] = useState<ColorblindFilter>('none');
+  const [isInitialized, setIsInitialized] = useState(false);
+  const isToggling = useRef(false);
 
   // Load saved preferences on mount
   useEffect(() => {
+    // Prevent multiple initializations
+    if (isInitialized) return;
+    
+    console.log('ThemeProvider: Initializing...');
+    
     const savedDarkMode = localStorage.getItem('darkMode');
     const savedColorblindFilter = localStorage.getItem('colorblindFilter') as ColorblindFilter;
     
+    let initialDarkMode = false;
+    
     if (savedDarkMode !== null) {
-      const darkMode = savedDarkMode === 'true';
-      setIsDarkMode(darkMode);
-      document.documentElement.classList.toggle('dark', darkMode);
+      initialDarkMode = savedDarkMode === 'true';
+      console.log('ThemeProvider: Using saved dark mode:', initialDarkMode);
     } else {
       // Check system preference
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setIsDarkMode(prefersDark);
-      document.documentElement.classList.toggle('dark', prefersDark);
+      initialDarkMode = prefersDark;
+      console.log('ThemeProvider: Using system preference:', initialDarkMode);
+    }
+    
+    // Set state and DOM together
+    setIsDarkMode(initialDarkMode);
+    document.documentElement.classList.toggle('dark', initialDarkMode);
+    
+    if (initialDarkMode) {
+      document.body.style.backgroundColor = '#111827';
+      document.body.style.color = '#f9fafb';
     }
     
     if (savedColorblindFilter && savedColorblindFilter !== 'none') {
       setColorblindFilter(savedColorblindFilter);
     }
-  }, []);
+    
+    setIsInitialized(true);
+    console.log('ThemeProvider: Initialization complete, isDarkMode:', initialDarkMode);
+  }, [isInitialized]);
 
   // Colorblind filter CSS injection with modal protection
   useEffect(() => {
@@ -203,6 +223,43 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       observer.disconnect();
     };
   }, [colorblindFilter]);
+
+  // Sync DOM classes with isDarkMode state (only after initialization)
+  useEffect(() => {
+    if (!isInitialized) return;
+    
+    console.log('ThemeProvider: Syncing DOM with isDarkMode state:', isDarkMode);
+    
+    // Use requestAnimationFrame to ensure DOM updates are applied correctly
+    requestAnimationFrame(() => {
+      try {
+        // Ensure DOM classes match the state
+        const hasDark = document.documentElement.classList.contains('dark');
+        
+        if (isDarkMode && !hasDark) {
+          document.documentElement.classList.add('dark');
+          console.log('ThemeProvider: Added .dark class to sync with state');
+        } else if (!isDarkMode && hasDark) {
+          document.documentElement.classList.remove('dark');
+          console.log('ThemeProvider: Removed .dark class to sync with state');
+        }
+        
+        // Apply body styling
+        const body = document.body;
+        if (isDarkMode) {
+          body.style.backgroundColor = '#111827';
+          body.style.color = '#f9fafb';
+        } else {
+          body.style.backgroundColor = '';
+          body.style.color = '';
+        }
+        
+        console.log('ThemeProvider: DOM sync complete. Classes:', document.documentElement.className);
+      } catch (error) {
+        console.error('ThemeProvider: Error during DOM sync:', error);
+      }
+    });
+  }, [isDarkMode, isInitialized]);
 
   // MODAL-SAFE CSS injection
   useEffect(() => {
@@ -483,30 +540,31 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   }, []);
 
   const toggleDarkMode = () => {
-    const newDarkMode = !isDarkMode;
-    setIsDarkMode(newDarkMode);
-    localStorage.setItem('darkMode', newDarkMode.toString());
-    
-    console.log('Toggling theme to:', newDarkMode ? 'DARK' : 'LIGHT');
-    
-    // Force remove dark class first, then conditionally add it
-    document.documentElement.classList.remove('dark');
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark');
-      console.log('Added .dark class to html');
-      // Apply dark mode body styling
-      const body = document.body;
-      body.style.backgroundColor = '#111827';
-      body.style.color = '#f9fafb';
-    } else {
-      console.log('Removed .dark class from html');
-      // Remove inline styles to let original Tailwind classes work
-      const body = document.body;
-      body.style.backgroundColor = '';
-      body.style.color = '';
+    if (!isInitialized || isToggling.current) {
+      console.log('ThemeProvider: Toggle ignored - not initialized or already toggling');
+      return;
     }
     
-    console.log('HTML classes:', document.documentElement.className);
+    isToggling.current = true;
+    const newDarkMode = !isDarkMode;
+    console.log('ThemeProvider: Toggling theme from', isDarkMode, 'to', newDarkMode);
+    
+    // Save to localStorage immediately
+    try {
+      localStorage.setItem('darkMode', newDarkMode.toString());
+      
+      // Update state (useEffect will handle DOM synchronization)
+      setIsDarkMode(newDarkMode);
+      
+      console.log('ThemeProvider: State updated, localStorage saved');
+    } catch (error) {
+      console.error('ThemeProvider: Error during toggle:', error);
+    }
+    
+    // Reset toggle flag after a brief delay
+    setTimeout(() => {
+      isToggling.current = false;
+    }, 100);
   };
 
   const contextValue: ThemeContextType = {
