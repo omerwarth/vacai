@@ -135,11 +135,6 @@ export default function Settings() {
   };
 
   const updateSetting = (path: string, value: string | number | boolean) => {
-    // Special handling for colorblind filter to sync with theme provider
-    if (path === 'colorblindFilter') {
-      setColorblindFilter(value as 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia');
-    }
-    
     const keys = path.split('.');
     const newSettings = { ...settings };
     let current: Record<string, unknown> = newSettings;
@@ -150,7 +145,19 @@ export default function Settings() {
     current[keys[keys.length - 1]] = value;
     
     setSettings(newSettings);
-    setHasChanges(true);
+    
+    // Special handling for colorblind filter to sync with theme provider and save immediately
+    if (path === 'colorblindFilter') {
+      setColorblindFilter(value as 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia');
+      // Save colorblind filter immediately to localStorage so it persists when navigating
+      const updatedSettings = {
+        ...newSettings,
+        lastUpdated: new Date().toISOString(),
+      };
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(updatedSettings));
+    } else {
+      setHasChanges(true);
+    }
   };
 
   const tabs = [
