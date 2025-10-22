@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { allItineraries } from './page';
+import { allItineraries } from './data';
 
 interface ItineraryDetailClientProps {
   itineraryId: string;
@@ -77,10 +78,11 @@ export default function ItineraryDetailClient({ itineraryId }: ItineraryDetailCl
 
       {/* Hero Image */}
       <div className="relative h-96">
-        <img
+        <Image
           src={itinerary.thumbnail}
           alt={itinerary.destination}
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-8">
@@ -107,10 +109,12 @@ export default function ItineraryDetailClient({ itineraryId }: ItineraryDetailCl
             <div className="bg-white rounded-xl shadow-md p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <img
+                  <Image
                     src={itinerary.userAvatar}
                     alt={itinerary.userName}
-                    className="w-16 h-16 rounded-full border-2 border-gray-200"
+                    width={64}
+                    height={64}
+                    className="rounded-full border-2 border-gray-200"
                   />
                   <div>
                     <h3 className="text-lg font-bold text-gray-900">{itinerary.userName}</h3>
@@ -142,7 +146,7 @@ export default function ItineraryDetailClient({ itineraryId }: ItineraryDetailCl
                 </ul>
                 <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded">
                   <p className="text-blue-900 font-medium">
-                    🚀 This feature is coming soon! We're building a comprehensive itinerary view with all trip details.
+                    🚀 This feature is coming soon! We&apos;re building a comprehensive itinerary view with all trip details.
                   </p>
                 </div>
               </div>

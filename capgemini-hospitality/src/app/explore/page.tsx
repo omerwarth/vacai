@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 // Category data with placeholder itineraries
@@ -139,7 +140,6 @@ const dummyItineraries = [
 
 export default function ExplorePage() {
   const router = useRouter();
-  const [viewMode, setViewMode] = useState<'categories' | 'all'>('categories');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -235,10 +235,11 @@ export default function ExplorePage() {
               >
                 {/* Thumbnail */}
                 <div className="relative h-48 overflow-hidden">
-                  <img
+                  <Image
                     src={itinerary.thumbnail}
                     alt={itinerary.destination}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                   <div className="absolute top-3 right-3 bg-white px-3 py-1 rounded-full text-xs font-semibold text-gray-700 shadow-md">
                     {itinerary.duration}
@@ -249,10 +250,12 @@ export default function ExplorePage() {
                 <div className="p-5">
                   {/* User Info */}
                   <div className="flex items-center space-x-3 mb-3">
-                    <img
+                    <Image
                       src={itinerary.userAvatar}
                       alt={itinerary.userName}
-                      className="w-10 h-10 rounded-full border-2 border-gray-200"
+                      width={40}
+                      height={40}
+                      className="rounded-full border-2 border-gray-200"
                     />
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{itinerary.userName}</p>

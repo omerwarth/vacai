@@ -29,12 +29,13 @@ const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfi
     
     try {
       const defaultProfile = {
+        userId: user.sub,
         name: user?.name || user?.email || 'My Profile',
         relationship: 'self',
         isDefault: true
       };
       
-      const response = await apiService.createTravelerProfile(user.sub, defaultProfile);
+      const response = await apiService.createTravelerProfile(defaultProfile);
       setProfiles([response.profile]);
     } catch (error) {
       console.error('Failed to create default profile:', error);
@@ -72,12 +73,13 @@ const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfi
     
     try {
       const profileData = {
+        userId: user.sub,
         name: newProfileName.trim(),
         relationship: newProfileRelationship || 'other',
         isDefault: false
       };
       
-      const response = await apiService.createTravelerProfile(user.sub, profileData);
+      const response = await apiService.createTravelerProfile(profileData);
       setProfiles([...profiles, response.profile]);
       setNewProfileName('');
       setNewProfileRelationship('');
@@ -92,7 +94,7 @@ const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfi
     if (!confirm('Are you sure you want to delete this profile?')) return;
     
     try {
-      await apiService.deleteTravelerProfile(profileId, user?.sub || '');
+      await apiService.deleteTravelerProfile(profileId);
       setProfiles(profiles.filter(p => p.id !== profileId));
     } catch (error) {
       console.error('Failed to delete profile:', error);
@@ -122,7 +124,7 @@ const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfi
         trip_vibe: data.trip_vibe as string[]
       };
       
-      await apiService.saveTravelPreferences(user.sub, selectedProfile.id, preferences);
+      await apiService.saveUserPreferences(user.sub, selectedProfile.id, preferences);
       setShowOnboarding(false);
       setSelectedProfile(null);
       

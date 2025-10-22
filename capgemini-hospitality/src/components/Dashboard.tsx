@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth0, User as Auth0User } from '@auth0/auth0-react';
-import { apiService, TravelerProfile } from '@/config/api';
+import { TravelerProfile } from '@/config/api';
 import ImageCarousel from './ImageCarousel';
 import OnboardingModal from './OnboardingModal';
 import SurveyResults from './SurveyResults';
@@ -15,15 +15,6 @@ import { NotificationModal } from './Notification';
 import { SavedPlansLink } from './SavedPlans';
 import { SettingsLink } from './Settings';
 import { useTheme } from './ThemeProvider';
-
-interface User {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface OnboardingData {
   [key: string]: string | string[] | number;
@@ -41,7 +32,6 @@ export default function Dashboard({ user }: DashboardProps) {
   const [showContactModal, setShowContactModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   // const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [users, setUsers] = useState<User[]>([]);
   const [hasExistingPlan, setHasExistingPlan] = useState(false);
   
   // Onboarding states
@@ -77,7 +67,6 @@ export default function Dashboard({ user }: DashboardProps) {
   };
 
   useEffect(() => {
-    fetchUsers();
     // Check if user has existing vacation plans
     checkExistingPlans();
     
@@ -91,15 +80,6 @@ export default function Dashboard({ user }: DashboardProps) {
       }
     }
   }, []);
-
-  const fetchUsers = async () => {
-    try {
-      const data = await apiService.getUsers();
-      setUsers(data.users || []);
-    } catch (error) {
-      console.error('Failed to fetch users:', error);
-    }
-  };
 
   const checkExistingPlans = () => {
     // Mock check for existing plans - replace with actual API call
@@ -127,7 +107,7 @@ export default function Dashboard({ user }: DashboardProps) {
     // Navigate to planning history page
     try {
       router.push('/planning-history');
-    } catch (e) {
+    } catch {
       console.log('Viewing planning history...');
     }
   };
@@ -635,8 +615,8 @@ export default function Dashboard({ user }: DashboardProps) {
                   <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{hasExistingPlan ? 'Active Plan Found' : 'No Active Plan'}</p>
                 </div>
                 <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'} p-4 rounded-lg`}>
-                  <p className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>Total Users</p>
-                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{users.length} registered</p>
+                  <p className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>Account Status</p>
+                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Active</p>
                 </div>
               </div>
               
