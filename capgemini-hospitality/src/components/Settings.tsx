@@ -112,11 +112,9 @@ export default function Settings() {
   useEffect(() => {
     const loadedSettings = loadSettings();
     setSettings(loadedSettings);
-    // Sync loaded colorblind filter with theme provider
-    if (loadedSettings.colorblindFilter !== colorblindFilter) {
-      setColorblindFilter(loadedSettings.colorblindFilter);
-    }
-  }, [colorblindFilter, setColorblindFilter]);
+    // Sync loaded colorblind filter with theme provider on initial load only
+    setColorblindFilter(loadedSettings.colorblindFilter);
+  }, []); // Remove colorblindFilter from dependencies to prevent loop
 
   const saveSettings = () => {
     const updatedSettings = {
