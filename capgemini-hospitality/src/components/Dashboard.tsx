@@ -234,6 +234,12 @@ export default function Dashboard({ user }: DashboardProps) {
             {/* Desktop Navigation */}
             <nav className="flex items-center space-x-6">
               <button
+                onClick={() => router.push('/explore')}
+                className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors duration-200 hover:underline"
+              >
+                Explore
+              </button>
+              <button
                 onClick={(e) => { e.preventDefault(); setShowHelpModal(true); }}
                 className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer`}
               >
