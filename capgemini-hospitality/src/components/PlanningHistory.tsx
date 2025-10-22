@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth0 } from "@auth0/auth0-react";
+import { apiService, Itinerary } from "@/config/api";
 
 type Plan = {
   id: string;
@@ -34,7 +36,10 @@ function loadPlans(): Plan[] {
 }
 
 export default function PlanningHistory() {
+  const { user } = useAuth0();
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<'all' | 'day' | 'week' | 'month' | 'year' | '2y' | '3y' | '4y' | '5y' | '10y'>('all');
   const [showAddForm, setShowAddForm] = useState(false);
   const [formTitle, setFormTitle] = useState('');
@@ -42,15 +47,130 @@ export default function PlanningHistory() {
   const [formStatus, setFormStatus] = useState<Plan['status']>('in-progress');
   const [formPrice, setFormPrice] = useState<number | string>(0);
   const [formLocation, setFormLocation] = useState('');
+  const [formDestination, setFormDestination] = useState('');
+  const [formActivities, setFormActivities] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
   const [priceThreshold, setPriceThreshold] = useState<number | 'all'>('all');
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [activePlan, setActivePlan] = useState<Plan | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Load itineraries from Azure Functions API
+  const loadItineraries = useCallback(async () => {
+    if (!user?.sub) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await apiService.getItineraries(user.sub);
+      
+      // Convert API itineraries to Plan format
+      const apiPlans: Plan[] = (response.itineraries || []).map((itinerary: Itinerary) => ({
+        id: itinerary.id || '',
+        title: itinerary.title || 'Untitled Plan',
+        date: itinerary.createdAt || new Date().toISOString(),
+        status: 'completed' as Plan['status'], // Itinerary doesn't have status, default to completed
+        price: itinerary.budget || 0,
+        location: itinerary.location || '',
+      }));
+
+      setPlans(apiPlans);
+    } catch (err) {
+      console.error('Failed to load itineraries:', err);
+      setError('Failed to load itineraries. Please try again.');
+      // Fallback to localStorage
+      setPlans(loadPlans());
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.sub]);
 
   useEffect(() => {
-    // Load from localStorage on mount
-    setPlans(loadPlans());
-  }, []);
+    // Load itineraries from API when component mounts
+    loadItineraries();
+  }, [loadItineraries]);
+
+  // Create a new itinerary via API
+  const handleCreateItinerary = async () => {
+    if (!user?.sub || !formTitle.trim()) {
+      setError('Please provide a title for your itinerary');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      setError(null);
+
+      const newItinerary = {
+        userId: user.sub,
+        profileId: user.sub, // You can update this to use selected profile
+        title: formTitle.trim(),
+        location: formDestination.trim() || formLocation.trim(),
+        startDate: formDate,
+        endDate: formDate, // You can add separate end date field
+        budget: Number(formPrice) || 0,
+        activity: formActivities ? formActivities.split(',').map(a => a.trim()) : [],
+        notes: `Status: ${formStatus}`,
+      };
+
+      const response = await apiService.createItinerary(newItinerary);
+      
+      // Add to local state
+      const newPlan: Plan = {
+        id: response.itinerary?.id || Date.now().toString(),
+        title: formTitle,
+        date: formDate,
+        status: formStatus,
+        price: Number(formPrice) || 0,
+        location: formDestination || formLocation,
+      };
+
+      setPlans([newPlan, ...plans]);
+
+      // Also save to localStorage as backup
+      const existing = loadPlans();
+      localStorage.setItem(SAVED_PLANS_KEY, JSON.stringify([newPlan, ...existing]));
+
+      // Reset form
+      setShowAddForm(false);
+      setFormTitle('');
+      setFormDate(new Date().toISOString().slice(0, 10));
+      setFormStatus('in-progress');
+      setFormPrice(0);
+      setFormLocation('');
+      setFormDestination('');
+      setFormActivities('');
+    } catch (err) {
+      console.error('Failed to create itinerary:', err);
+      setError('Failed to create itinerary. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Delete itinerary via API
+  const handleDeleteItinerary = async (planId: string) => {
+    if (!user?.sub) return;
+
+    try {
+      await apiService.deleteItinerary(planId, user.sub);
+      
+      // Remove from local state
+      const updated = plans.filter(p => p.id !== planId);
+      setPlans(updated);
+
+      // Also remove from localStorage
+      const localPlans = loadPlans().filter(p => p.id !== planId);
+      localStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(localPlans));
+    } catch (err) {
+      console.error('Failed to delete itinerary:', err);
+      setError('Failed to delete itinerary. Please try again.');
+    }
+  };
+
 
   // compute filtered plans based on selected period
   const periodFilteredPlans = plans.filter((plan) => {
@@ -145,18 +265,25 @@ export default function PlanningHistory() {
           </button>
           <button
             onClick={() => setShowAddForm(true)}
-            className="text-sm px-3 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700 "
+            className="text-sm px-3 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700"
           >
-            Add Sample Plan
+            Create New Itinerary
           </button>
           <button
-            onClick={() => setPlans(loadPlans())}
-            className="text-sm px-3 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700 "
+            onClick={loadItineraries}
+            className="text-sm px-3 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700"
+            disabled={isLoading}
           >
-            Refresh
+            {isLoading ? 'Loading...' : 'Refresh'}
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
 
         {(!plans || plans.length === 0) ? (
         <div className="bg-white rounded-2xl shadow border border-gray-100 p-10 text-center">
@@ -201,12 +328,7 @@ export default function PlanningHistory() {
               <div className="mt-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <button onClick={() => { setActivePlan(plan); setShowDetailModal(true); }} className="text-sm px-3 py-2 rounded-md bg-gradient-to-r from-sky-600 to-sky-700 text-white hover:opacity-95">Open</button>
-                  <button onClick={() => {
-                    // delete single plan
-                    const updated = plans.filter(p => p.id !== plan.id);
-                    localStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(updated));
-                    setPlans(updated);
-                  }} className="text-sm px-3 py-2 rounded-md bg-sky-600 text-white hover:bg-sky-700">Delete</button>
+                  <button onClick={() => handleDeleteItinerary(plan.id)} className="text-sm px-3 py-2 rounded-md bg-sky-600 text-white hover:bg-sky-700">Delete</button>
                 </div>
                 <div className="text-sm text-gray-400 flex items-center gap-3">
                   <span>{new Date(plan.date).toLocaleDateString()}</span>
@@ -233,9 +355,7 @@ export default function PlanningHistory() {
             <div className="mt-6 flex items-center justify-end gap-3">
               <button onClick={() => { setShowDetailModal(false); setActivePlan(null); }} className="px-4 py-2 rounded-md border border-sky-600 text-sky-600">Close</button>
               <button onClick={() => {
-                const updated = plans.filter(p => p.id !== activePlan.id);
-                localStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(updated));
-                setPlans(updated);
+                handleDeleteItinerary(activePlan.id);
                 setShowDetailModal(false);
                 setActivePlan(null);
               }} className="px-4 py-2 rounded-md bg-red-600 text-white">Delete Plan</button>
@@ -246,43 +366,86 @@ export default function PlanningHistory() {
       {/* Add Plan Modal */}
       {showAddForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Add a Plan</h3>
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Itinerary</h3>
 
-            <label className="block text-sm text-gray-700">Title</label>
-            <input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} className="w-full mt-1 mb-3 px-3 py-2 border rounded-md" />
+            {error && (
+              <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">
+                {error}
+              </div>
+            )}
 
-            <label className="block text-sm text-gray-700">Date</label>
-            <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)} className="w-full mt-1 mb-3 px-3 py-2 border rounded-md" />
+            <label className="block text-sm text-gray-700">Title *</label>
+            <input 
+              value={formTitle} 
+              onChange={(e) => setFormTitle(e.target.value)} 
+              placeholder="e.g., Summer Vacation 2025"
+              className="w-full mt-1 mb-3 px-3 py-2 border rounded-md" 
+              required
+            />
 
-            <label className="block text-sm text-gray-700">Location</label>
-            <input value={formLocation} onChange={(e) => setFormLocation(e.target.value)} className="w-full mt-1 mb-3 px-3 py-2 border rounded-md" />
+            <label className="block text-sm text-gray-700">Destination</label>
+            <input 
+              value={formDestination} 
+              onChange={(e) => setFormDestination(e.target.value)} 
+              placeholder="e.g., Paris, France"
+              className="w-full mt-1 mb-3 px-3 py-2 border rounded-md" 
+            />
+
+            <label className="block text-sm text-gray-700">Start Date</label>
+            <input 
+              type="date" 
+              value={formDate} 
+              onChange={(e) => setFormDate(e.target.value)} 
+              className="w-full mt-1 mb-3 px-3 py-2 border rounded-md" 
+            />
+
+            <label className="block text-sm text-gray-700">Activities (comma-separated)</label>
+            <input 
+              value={formActivities} 
+              onChange={(e) => setFormActivities(e.target.value)} 
+              placeholder="e.g., sightseeing, dining, museums"
+              className="w-full mt-1 mb-3 px-3 py-2 border rounded-md" 
+            />
 
             <label className="block text-sm text-gray-700">Status</label>
-            <select value={formStatus} onChange={(e) => setFormStatus(e.target.value as Plan['status'])} className="w-full mt-1 mb-4 px-3 py-2 border rounded-md">
+            <select 
+              value={formStatus} 
+              onChange={(e) => setFormStatus(e.target.value as Plan['status'])} 
+              className="w-full mt-1 mb-4 px-3 py-2 border rounded-md"
+            >
+              <option value="draft">Draft</option>
               <option value="in-progress">In-progress</option>
               <option value="completed">Completed</option>
-              <option value="draft">Draft</option>
             </select>
 
-            <label className="block text-sm text-gray-700">Estimated Price (USD)</label>
-            <input type="number" value={String(formPrice)} onChange={(e) => setFormPrice(e.target.value)} className="w-full mt-1 mb-4 px-3 py-2 border rounded-md" />
+            <label className="block text-sm text-gray-700">Estimated Budget (USD)</label>
+            <input 
+              type="number" 
+              value={String(formPrice)} 
+              onChange={(e) => setFormPrice(e.target.value)} 
+              placeholder="0"
+              className="w-full mt-1 mb-4 px-3 py-2 border rounded-md" 
+            />
 
-            <div className="flex items-center justify-end gap-3">
-              <button onClick={() => setShowAddForm(false)} className="px-4 py-2 rounded-md border border-sky-600 text-sky-600">Cancel</button>
-              <button onClick={() => {
-                const id = Date.now().toString();
-                const sample: Plan = { id, title: formTitle || 'New Plan', date: new Date(formDate).toISOString(), status: formStatus, price: Number(formPrice) || 0, location: formLocation || '' };
-                const existing = loadPlans();
-                const updated = [sample, ...existing];
-                localStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(updated));
-                setPlans(updated);
-                setShowAddForm(false);
-                setFormTitle('');
-                setFormDate(new Date().toISOString().slice(0,10));
-                setFormStatus('in-progress');
-                setFormLocation('');
-              }} className="px-4 py-2 rounded-md bg-sky-600 text-white">Add Plan</button>
+            <div className="flex items-center justify-end gap-3 mt-6">
+              <button 
+                onClick={() => {
+                  setShowAddForm(false);
+                  setError(null);
+                }} 
+                className="px-4 py-2 rounded-md border border-sky-600 text-sky-600"
+                disabled={isSaving}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleCreateItinerary}
+                className="px-4 py-2 rounded-md bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-50"
+                disabled={isSaving || !formTitle.trim()}
+              >
+                {isSaving ? 'Creating...' : 'Create Itinerary'}
+              </button>
             </div>
           </div>
         </div>
