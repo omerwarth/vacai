@@ -7,7 +7,7 @@ type SavedPlan = {
   id: string;
   title: string;
   date: string;
-  status: "saved" | "favorite" | "wishlist";
+  status: "saved" | "favorite";
   price?: number;
   location?: string;
   description?: string;
@@ -45,10 +45,31 @@ export default function SavedPlans() {
   const [formPrice, setFormPrice] = useState<number | string>(0);
   const [formLocation, setFormLocation] = useState('');
   const [formDescription, setFormDescription] = useState('');
+  const [formActivities, setFormActivities] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
   const [priceThreshold, setPriceThreshold] = useState<number | 'all'>('all');
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [activePlan, setActivePlan] = useState<SavedPlan | null>(null);
+  
+  // Comparison feature states
+  const [isCompareMode, setIsCompareMode] = useState(false);
+  const [selectedPlansForComparison, setSelectedPlansForComparison] = useState<string[]>([]);
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
+
+  // Function to toggle favorite status
+  const toggleFavoriteStatus = (planId: string) => {
+    const updatedPlans = plans.map(plan => {
+      if (plan.id === planId) {
+        return {
+          ...plan,
+          status: plan.status === 'favorite' ? 'saved' as const : 'favorite' as const
+        };
+      }
+      return plan;
+    });
+    setPlans(updatedPlans);
+    localStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(updatedPlans));
+  };
 
   useEffect(() => {
     // Load from localStorage on mount
@@ -100,7 +121,7 @@ export default function SavedPlans() {
           </div>
           <div>
             <h1 className="text-3xl font-extrabold text-emerald-700">Saved Plans</h1>
-            <p className="text-sm text-emerald-600 mt-1">Your saved vacation ideas and wishlist destinations.</p>
+            <p className="text-sm text-emerald-600 mt-1">Your saved vacation ideas and favorite destinations.</p>
             <p className="text-sm text-emerald-700 font-semibold mt-2">Total Saved: {visiblePlans.length}</p>
           </div>
         </div>
@@ -140,6 +161,34 @@ export default function SavedPlans() {
             onChange={(e) => setLocationQuery(e.target.value)}
             className="ml-2 text-sm rounded-md border border-emerald-200 px-3 py-2 bg-emerald-50 text-emerald-700 placeholder-emerald-500"
           />
+          {/* Comparison Mode Toggle */}
+          <button
+            onClick={() => {
+              setIsCompareMode(!isCompareMode);
+              setSelectedPlansForComparison([]);
+            }}
+            className={`text-sm px-3 py-2 rounded-lg transition-colors ${
+              isCompareMode 
+                ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            {isCompareMode ? 'Exit Compare' : 'Compare Plans'}
+          </button>
+          {/* Compare Button - only show in compare mode */}
+          {isCompareMode && (
+            <button
+              onClick={() => setShowComparisonModal(true)}
+              disabled={selectedPlansForComparison.length !== 2}
+              className={`text-sm px-3 py-2 rounded-lg transition-colors ${
+                selectedPlansForComparison.length === 2
+                  ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Compare ({selectedPlansForComparison.length}/2)
+            </button>
+          )}
           <button
             onClick={() => window.location.assign('/')}
             className="text-sm px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
@@ -150,7 +199,7 @@ export default function SavedPlans() {
             onClick={() => setShowAddForm(true)}
             className="text-sm px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 "
           >
-            Save New Plan
+            Create New Itinerary
           </button>
           <button
             onClick={() => setPlans(loadSavedPlans())}
@@ -161,7 +210,24 @@ export default function SavedPlans() {
         </div>
       </div>
 
-        {(!plans || plans.length === 0) ? (
+      {/* Comparison Mode Instructions */}
+      {isCompareMode && visiblePlans.length > 0 && selectedPlansForComparison.length === 0 && (
+        <div className="mb-6 bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-purple-800">Comparison Mode Active</h3>
+              <p className="text-sm text-purple-700">Select exactly 2 plans using the checkboxes to compare them side by side.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(!plans || plans.length === 0) ? (
         <div className="bg-white rounded-2xl shadow border border-gray-100 p-10 text-center">
           <svg className="mx-auto mb-4 w-16 h-16 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -183,40 +249,101 @@ export default function SavedPlans() {
         ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {visiblePlans.map((plan) => (
-            <article key={plan.id} className="relative bg-white border border-emerald-50 rounded-2xl p-5 shadow-sm hover:shadow-lg hover:ring-1 hover:ring-emerald-100 transition-shadow duration-200">
+            <article key={plan.id} className={`relative bg-white border rounded-2xl p-5 shadow-sm hover:shadow-lg transition-shadow duration-200 ${
+              isCompareMode && selectedPlansForComparison.includes(plan.id) 
+                ? 'border-purple-300 ring-2 ring-purple-200 bg-purple-50' 
+                : 'border-emerald-50 hover:ring-1 hover:ring-emerald-100'
+            }`}>
+              {/* Favorite Star Toggle */}
+              {!isCompareMode && (
+                <button
+                  onClick={() => toggleFavoriteStatus(plan.id)}
+                  className="absolute top-3 right-3 z-10 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                  title={plan.status === 'favorite' ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <svg 
+                    className={`w-5 h-5 ${plan.status === 'favorite' ? 'text-yellow-500 fill-current' : 'text-gray-400'}`} 
+                    fill={plan.status === 'favorite' ? 'currentColor' : 'none'} 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.915a1 1 0 00.95-.69l1.519-4.674z" />
+                  </svg>
+                </button>
+              )}
+              
+              {/* Comparison Mode Checkbox */}
+              {isCompareMode && (
+                <div className="absolute top-3 right-3 z-10">
+                  <input
+                    type="checkbox"
+                    checked={selectedPlansForComparison.includes(plan.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        if (selectedPlansForComparison.length < 2) {
+                          setSelectedPlansForComparison([...selectedPlansForComparison, plan.id]);
+                        }
+                      } else {
+                        setSelectedPlansForComparison(selectedPlansForComparison.filter(id => id !== plan.id));
+                      }
+                    }}
+                    disabled={!selectedPlansForComparison.includes(plan.id) && selectedPlansForComparison.length >= 2}
+                    className="w-5 h-5 text-purple-600 bg-white border-2 border-purple-300 rounded focus:ring-purple-500 focus:ring-2"
+                  />
+                </div>
+              )}
+              
               <div className="flex items-start justify-between">
                 <div>
             <h3 className="text-lg font-semibold text-emerald-800">{plan.title}</h3>
             {plan.location ? <div className="text-sm text-emerald-600 mt-1">{plan.location}</div> : null}
                 </div>
-                <div className="text-right">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                    plan.status === 'favorite' ? 'bg-red-100 text-red-800' : plan.status === 'saved' ? 'bg-emerald-100 text-emerald-800' : 'bg-purple-100 text-purple-800'
-                  }`}>
-                    {plan.status === 'favorite' ? '❤️ Favorite' : plan.status === 'saved' ? '💾 Saved' : '🌟 Wishlist'}
-                  </span>
-                </div>
               </div>
 
-              <p className="mt-4 text-sm text-gray-600">{plan.description || 'A saved vacation idea. Click to view details and plan your next adventure.'}</p>
+              <p className="mt-4 text-sm text-gray-600">
+                <span className="font-medium">Activities:</span> {plan.description || 'No activities specified for this vacation plan.'}
+              </p>
 
-              <div className="mt-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <button onClick={() => { setActivePlan(plan); setShowDetailModal(true); }} className="text-sm px-3 py-2 rounded-md bg-gradient-to-r from-emerald-600 to-emerald-700 text-white hover:opacity-95">View Details</button>
-                  <button onClick={() => {
-                    // delete single plan
-                    const updated = plans.filter(p => p.id !== plan.id);
-                    localStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(updated));
-                    setPlans(updated);
-                  }} className="text-sm px-3 py-2 rounded-md bg-red-500 text-white hover:bg-red-600">Remove</button>
+              {!isCompareMode && (
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => { setActivePlan(plan); setShowDetailModal(true); }} className="text-sm px-3 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700">View Details</button>
+                    <button onClick={() => {
+                      // delete single plan
+                      const updated = plans.filter(p => p.id !== plan.id);
+                      localStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(updated));
+                      setPlans(updated);
+                    }} className="text-sm px-3 py-2 rounded-md bg-red-500 text-white hover:bg-red-600">Remove</button>
+                  </div>
+                  <div className="text-sm text-gray-400 flex items-center gap-3">
+                    <span>{new Date(plan.date).toLocaleDateString()}</span>
+                    {plan.price && plan.price > 0 && (
+                      <span className="text-emerald-700 font-semibold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(plan.price)}</span>
+                    )}
+                  </div>
                 </div>
-                <div className="text-sm text-gray-400 flex items-center gap-3">
-                  <span>{new Date(plan.date).toLocaleDateString()}</span>
-                  {plan.price && plan.price > 0 && (
-                    <span className="text-emerald-700 font-semibold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(plan.price)}</span>
-                  )}
+              )}
+              
+              {/* Show basic info in compare mode */}
+              {isCompareMode && (
+                <div className="mt-4 space-y-3">
+                  <div className="text-sm text-gray-600 space-y-1">
+                    <div><strong>Status:</strong> {plan.status.charAt(0).toUpperCase() + plan.status.slice(1)}</div>
+                    <div><strong>Date:</strong> {new Date(plan.date).toLocaleDateString()}</div>
+                    {plan.price && plan.price > 0 && (
+                      <div><strong>Price:</strong> {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(plan.price)}</div>
+                    )}
+                  </div>
+                  <div className="flex justify-start">
+                    <button 
+                      onClick={() => { setActivePlan(plan); setShowDetailModal(true); }} 
+                      className="text-sm px-3 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
+                    >
+                      View Details
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </article>
           ))}
         </div>
@@ -230,12 +357,12 @@ export default function SavedPlans() {
               <div><strong>Title:</strong> {activePlan.title}</div>
               <div><strong>Saved on:</strong> {new Date(activePlan.date).toLocaleString()}</div>
               <div><strong>Location:</strong> {activePlan.location || '-'}</div>
-              <div><strong>Status:</strong> {activePlan.status}</div>
+              <div><strong>Status:</strong> {activePlan.status.charAt(0).toUpperCase() + activePlan.status.slice(1)}</div>
               {activePlan.price && activePlan.price > 0 && (
                 <div><strong>Est. Price:</strong> {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(activePlan.price)}</div>
               )}
               {activePlan.description && (
-                <div><strong>Description:</strong> {activePlan.description}</div>
+                <div><strong>Activities:</strong> {activePlan.description}</div>
               )}
               <div className="break-all"><strong>ID:</strong> {activePlan.id}</div>
             </div>
@@ -259,66 +386,310 @@ export default function SavedPlans() {
       {/* Add Plan Modal */}
       {showAddForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Save New Plan</h3>
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Itinerary</h3>
 
-            <label className="block text-sm text-gray-700">Title</label>
-            <input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} className="w-full mt-1 mb-3 px-3 py-2 border rounded-md" placeholder="e.g. Dream Trip to Japan" />
-
-            <label className="block text-sm text-gray-700">Date Saved</label>
-            <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)} className="w-full mt-1 mb-3 px-3 py-2 border rounded-md" />
-
-            <label className="block text-sm text-gray-700">Location</label>
-            <input value={formLocation} onChange={(e) => setFormLocation(e.target.value)} className="w-full mt-1 mb-3 px-3 py-2 border rounded-md" placeholder="e.g. Tokyo, Japan" />
-
-            <label className="block text-sm text-gray-700">Status</label>
-            <select value={formStatus} onChange={(e) => setFormStatus(e.target.value as SavedPlan['status'])} className="w-full mt-1 mb-4 px-3 py-2 border rounded-md">
-              <option value="saved">💾 Saved</option>
-              <option value="favorite">❤️ Favorite</option>
-              <option value="wishlist">🌟 Wishlist</option>
-            </select>
-
-            <label className="block text-sm text-gray-700">Description</label>
-            <textarea 
-              value={formDescription} 
-              onChange={(e) => setFormDescription(e.target.value)} 
+            <label className="block text-sm text-gray-700">Title *</label>
+            <input 
+              value={formTitle} 
+              onChange={(e) => setFormTitle(e.target.value)} 
               className="w-full mt-1 mb-3 px-3 py-2 border rounded-md" 
-              rows={3}
-              placeholder="Brief description of the plan..."
+              placeholder="e.g., Summer Vacation 2025" 
+              required
             />
 
-            <label className="block text-sm text-gray-700">Estimated Price (USD)</label>
-            <input type="number" value={String(formPrice)} onChange={(e) => setFormPrice(e.target.value)} className="w-full mt-1 mb-4 px-3 py-2 border rounded-md" placeholder="0" />
+            <label className="block text-sm text-gray-700">Destination</label>
+            <input 
+              value={formLocation} 
+              onChange={(e) => setFormLocation(e.target.value)} 
+              className="w-full mt-1 mb-3 px-3 py-2 border rounded-md" 
+              placeholder="e.g., Paris, France" 
+            />
 
-            <div className="flex items-center justify-end gap-3">
-              <button onClick={() => setShowAddForm(false)} className="px-4 py-2 rounded-md border border-emerald-600 text-emerald-600">Cancel</button>
-              <button onClick={() => {
-                const id = Date.now().toString();
-                const sample: SavedPlan = { 
-                  id, 
-                  title: formTitle || 'New Saved Plan', 
-                  date: new Date(formDate).toISOString(), 
-                  status: formStatus, 
-                  price: Number(formPrice) || 0, 
-                  location: formLocation || '',
-                  description: formDescription || ''
-                };
-                const existing = loadSavedPlans();
-                const updated = [sample, ...existing];
-                localStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(updated));
-                setPlans(updated);
-                setShowAddForm(false);
-                setFormTitle('');
-                setFormDate(new Date().toISOString().slice(0,10));
-                setFormStatus('saved');
-                setFormLocation('');
-                setFormDescription('');
-                setFormPrice(0);
-              }} className="px-4 py-2 rounded-md bg-emerald-600 text-white">Save Plan</button>
+            <label className="block text-sm text-gray-700">Start Date</label>
+            <input 
+              type="date" 
+              value={formDate} 
+              onChange={(e) => setFormDate(e.target.value)} 
+              className="w-full mt-1 mb-3 px-3 py-2 border rounded-md" 
+            />
+
+            <label className="block text-sm text-gray-700">Activities (comma-separated)</label>
+            <input 
+              value={formActivities} 
+              onChange={(e) => setFormActivities(e.target.value)} 
+              className="w-full mt-1 mb-3 px-3 py-2 border rounded-md" 
+              placeholder="e.g., sightseeing, dining, museums" 
+            />
+
+            <label className="block text-sm text-gray-700">Status</label>
+            <select 
+              value={formStatus} 
+              onChange={(e) => setFormStatus(e.target.value as SavedPlan['status'])} 
+              className="w-full mt-1 mb-4 px-3 py-2 border rounded-md"
+            >
+              <option value="saved">Saved</option>
+              <option value="favorite">Favorite</option>
+            </select>
+
+            <label className="block text-sm text-gray-700">Estimated Budget (USD)</label>
+            <input 
+              type="number" 
+              value={String(formPrice)} 
+              onChange={(e) => setFormPrice(e.target.value)} 
+              className="w-full mt-1 mb-4 px-3 py-2 border rounded-md" 
+              placeholder="0" 
+            />
+
+            <div className="flex items-center justify-end gap-3 mt-6">
+              <button 
+                onClick={() => {
+                  setShowAddForm(false);
+                }} 
+                className="px-4 py-2 rounded-md border border-emerald-600 text-emerald-600"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  const id = Date.now().toString();
+                  const sample: SavedPlan = { 
+                    id, 
+                    title: formTitle || 'New Saved Plan', 
+                    date: new Date(formDate).toISOString(), 
+                    status: formStatus, 
+                    price: Number(formPrice) || 0, 
+                    location: formLocation || '',
+                    description: formDescription || formActivities || ''
+                  };
+                  const existing = loadSavedPlans();
+                  const updated = [sample, ...existing];
+                  localStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(updated));
+                  setPlans(updated);
+                  setShowAddForm(false);
+                  setFormTitle('');
+                  setFormDate(new Date().toISOString().slice(0,10));
+                  setFormStatus('saved');
+                  setFormLocation('');
+                  setFormDescription('');
+                  setFormActivities('');
+                  setFormPrice(0);
+                }} 
+                className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+                disabled={!formTitle.trim()}
+              >
+                Create Itinerary
+              </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Plan Comparison Modal */}
+      {showComparisonModal && selectedPlansForComparison.length === 2 && (() => {
+        const plan1 = plans.find(p => p.id === selectedPlansForComparison[0]);
+        const plan2 = plans.find(p => p.id === selectedPlansForComparison[1]);
+        
+        if (!plan1 || !plan2) return null;
+
+        const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
+        const formatPrice = (price?: number) => price && price > 0 ? new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(price) : 'Not specified';
+        
+        // Function to count attractions/activities from description
+        const countAttractions = (description?: string) => {
+          if (!description) return 0;
+          // Split by comma and count non-empty items
+          const attractions = description.split(',').map(item => item.trim()).filter(item => item.length > 0);
+          return attractions.length;
+        };
+
+        // Function to get attractions list
+        const getAttractionsList = (description?: string) => {
+          if (!description) return [];
+          return description.split(',').map(item => item.trim()).filter(item => item.length > 0);
+        };
+        
+        return (
+          <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50">
+            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-auto">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 border-b border-emerald-200 p-6 rounded-t-xl">
+                <h2 className="text-2xl font-bold mb-2 text-emerald-800">Plan Comparison</h2>
+                <p className="text-emerald-700">Compare your saved vacation plans</p>
+              </div>
+
+              {/* Comparison Content */}
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Plan 1 */}
+                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-6 border border-emerald-200">
+                    <div className="flex items-start justify-between mb-4">
+                      <h3 className="text-xl font-semibold text-emerald-800">{plan1.title}</h3>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        plan1.status === 'favorite' ? 'bg-red-100 text-red-800' : 'bg-emerald-200 text-emerald-800'
+                      }`}>
+                        {plan1.status === 'favorite' ? '❤️ Favorite' : '💾 Saved'}
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-3 text-sm">
+                      <div>
+                        <span className="font-medium text-emerald-700">Location:</span>
+                        <span className="ml-2 text-emerald-800">{plan1.location || 'Not specified'}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-emerald-700">Date Saved:</span>
+                        <span className="ml-2 text-emerald-800">{formatDate(plan1.date)}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-emerald-700">Estimated Price:</span>
+                        <span className="ml-2 text-emerald-800">{formatPrice(plan1.price)}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-emerald-700">Number of Attractions:</span>
+                        <span className="ml-2 text-emerald-800 font-semibold">{countAttractions(plan1.description)}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-emerald-700">Activities:</span>
+                        <p className="mt-1 text-emerald-800 bg-white/60 p-3 rounded-md">
+                          {plan1.description || 'No activities provided'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Plan 2 */}
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
+                    <div className="flex items-start justify-between mb-4">
+                      <h3 className="text-xl font-semibold text-blue-800">{plan2.title}</h3>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        plan2.status === 'favorite' ? 'bg-red-100 text-red-800' : 'bg-blue-200 text-blue-800'
+                      }`}>
+                        {plan2.status === 'favorite' ? '❤️ Favorite' : '💾 Saved'}
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-3 text-sm">
+                      <div>
+                        <span className="font-medium text-blue-700">Location:</span>
+                        <span className="ml-2 text-blue-800">{plan2.location || 'Not specified'}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-blue-700">Date Saved:</span>
+                        <span className="ml-2 text-blue-800">{formatDate(plan2.date)}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-blue-700">Estimated Price:</span>
+                        <span className="ml-2 text-blue-800">{formatPrice(plan2.price)}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-blue-700">Number of Attractions:</span>
+                        <span className="ml-2 text-blue-800 font-semibold">{countAttractions(plan2.description)}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-blue-700">Activities:</span>
+                        <p className="mt-1 text-blue-800 bg-white/60 p-3 rounded-md">
+                          {plan2.description || 'No activities provided'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Comparison Summary */}
+                <div className="mt-6 bg-gray-50 rounded-lg p-6 border border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4">📊 Comparison Summary</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="font-medium">Location Match:</span>
+                        <span className={plan1.location === plan2.location ? 'text-green-600' : 'text-orange-600'}>
+                          {plan1.location === plan2.location ? '✓ Same' : '⚡ Different'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium">Attractions Count:</span>
+                        <span className="text-purple-600 font-semibold">
+                          {countAttractions(plan1.description)} vs {countAttractions(plan2.description)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="font-medium">Price Difference:</span>
+                        <span className="text-purple-600 font-semibold">
+                          {(() => {
+                            const price1 = plan1.price || 0;
+                            const price2 = plan2.price || 0;
+                            const diff = Math.abs(price1 - price2);
+                            return diff > 0 ? `$${diff.toLocaleString()}` : 'Same';
+                          })()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium">More Expensive:</span>
+                        <span className="text-gray-700">
+                          {(() => {
+                            const price1 = plan1.price || 0;
+                            const price2 = plan2.price || 0;
+                            if (price1 > price2) return plan1.title;
+                            if (price2 > price1) return plan2.title;
+                            return 'Same price';
+                          })()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium">More Attractions:</span>
+                        <span className="text-gray-700">
+                          {(() => {
+                            const count1 = countAttractions(plan1.description);
+                            const count2 = countAttractions(plan2.description);
+                            if (count1 > count2) return plan1.title;
+                            if (count2 > count1) return plan2.title;
+                            return 'Same number';
+                          })()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="mt-6 flex items-center justify-end gap-3">
+                  <button 
+                    onClick={() => {
+                      setShowComparisonModal(false);
+                      setSelectedPlansForComparison([]);
+                      setIsCompareMode(false);
+                    }}
+                    className="px-4 py-2 rounded-md border border-purple-600 text-purple-600 hover:bg-purple-50"
+                  >
+                    Close Comparison
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setShowComparisonModal(false);
+                      setSelectedPlansForComparison([]);
+                    }}
+                    className="px-4 py-2 rounded-md bg-purple-600 text-white hover:bg-purple-700"
+                  >
+                    Compare Different Plans
+                  </button>
+                  <button 
+                    onClick={() => {
+                      // Could integrate with planning system
+                      alert(`Starting to plan the higher priority option: ${plan1.status === 'favorite' ? plan1.title : plan2.title}`);
+                    }}
+                    className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
+                  >
+                    Start Planning Selected
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
