@@ -179,14 +179,14 @@ export default function SavedPlans() {
           {isCompareMode && (
             <button
               onClick={() => setShowComparisonModal(true)}
-              disabled={selectedPlansForComparison.length !== 2}
+              disabled={selectedPlansForComparison.length < 2}
               className={`text-sm px-3 py-2 rounded-lg transition-colors shadow-sm ${
-                selectedPlansForComparison.length === 2
+                selectedPlansForComparison.length >= 2
                   ? 'bg-emerald-600 dark:bg-emerald-700 text-white hover:bg-emerald-700 dark:hover:bg-emerald-600'
                   : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
               }`}
             >
-              Compare ({selectedPlansForComparison.length}/2)
+              Compare ({selectedPlansForComparison.length})
             </button>
           )}
           <button
@@ -221,7 +221,7 @@ export default function SavedPlans() {
             </div>
             <div>
               <h3 className="text-sm font-semibold text-purple-800 dark:text-purple-200">Comparison Mode Active</h3>
-              <p className="text-sm text-purple-700 dark:text-purple-300">Select exactly 2 plans using the checkboxes to compare them side by side.</p>
+              <p className="text-sm text-purple-700 dark:text-purple-300">Select 2 or more plans using the checkboxes to compare them side by side.</p>
             </div>
           </div>
         </div>
@@ -280,14 +280,11 @@ export default function SavedPlans() {
                     checked={selectedPlansForComparison.includes(plan.id)}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        if (selectedPlansForComparison.length < 2) {
-                          setSelectedPlansForComparison([...selectedPlansForComparison, plan.id]);
-                        }
+                        setSelectedPlansForComparison([...selectedPlansForComparison, plan.id]);
                       } else {
                         setSelectedPlansForComparison(selectedPlansForComparison.filter(id => id !== plan.id));
                       }
                     }}
-                    disabled={!selectedPlansForComparison.includes(plan.id) && selectedPlansForComparison.length >= 2}
                     className="w-5 h-5 text-purple-600 dark:text-purple-500 bg-white dark:bg-gray-700 border-2 border-purple-300 dark:border-purple-500 rounded focus:ring-purple-500 focus:ring-2 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
@@ -486,11 +483,10 @@ export default function SavedPlans() {
       )}
 
       {/* Plan Comparison Modal */}
-      {showComparisonModal && selectedPlansForComparison.length === 2 && (() => {
-        const plan1 = plans.find(p => p.id === selectedPlansForComparison[0]);
-        const plan2 = plans.find(p => p.id === selectedPlansForComparison[1]);
+      {showComparisonModal && selectedPlansForComparison.length >= 2 && (() => {
+        const selectedPlans = plans.filter(p => selectedPlansForComparison.includes(p.id));
         
-        if (!plan1 || !plan2) return null;
+        if (selectedPlans.length < 2) return null;
 
         const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
         const formatPrice = (price?: number) => price && price > 0 ? new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(price) : 'Not specified';
@@ -503,150 +499,201 @@ export default function SavedPlans() {
           return attractions.length;
         };
 
+        // Determine grid layout based on number of plans
+        const getGridCols = (count: number) => {
+          if (count === 2) return 'md:grid-cols-2';
+          if (count === 3) return 'md:grid-cols-3';
+          if (count === 4) return 'md:grid-cols-2 lg:grid-cols-4';
+          return 'md:grid-cols-2 lg:grid-cols-3'; // For 5+ plans
+        };
+
         
         return (
           <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 dark:bg-black/70">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-7xl w-full mx-4 max-h-[90vh] overflow-auto">
               {/* Header */}
               <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-gray-700 dark:to-gray-600 border-b border-emerald-200 dark:border-gray-600 p-6 rounded-t-xl">
                 <h2 className="text-2xl font-bold mb-2 text-emerald-800 dark:text-emerald-200">Plan Comparison</h2>
-                <p className="text-emerald-700 dark:text-emerald-300">Compare your saved vacation plans</p>
+                <p className="text-emerald-700 dark:text-emerald-300">Comparing {selectedPlans.length} vacation plans</p>
               </div>
 
               {/* Comparison Content */}
               <div className="p-6 bg-white dark:bg-gray-800">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Plan 1 */}
-                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 rounded-lg p-6 border border-emerald-200 dark:border-emerald-700/50">
-                    <div className="flex items-start justify-between mb-4">
-                      <h3 className="text-xl font-semibold text-emerald-800 dark:text-emerald-200">{plan1.title}</h3>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        plan1.status === 'favorite' 
-                          ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300' 
-                          : 'bg-emerald-200 dark:bg-emerald-800/30 text-emerald-800 dark:text-emerald-300'
-                      }`}>
-                        {plan1.status === 'favorite' ? '❤️ Favorite' : '💾 Saved'}
-                      </span>
-                    </div>
+                <div className={`grid grid-cols-1 ${getGridCols(selectedPlans.length)} gap-6`}>
+                  {(() => {
+                    // First, determine which plans are special
+                    const cheapestPlan = selectedPlans.reduce((prev, current) => 
+                      (prev.price || 0) < (current.price || 0) ? prev : current
+                    );
+                    const mostActivitiesPlan = selectedPlans.reduce((prev, current) => 
+                      countAttractions(prev.description) > countAttractions(current.description) ? prev : current
+                    );
                     
-                    <div className="space-y-3 text-sm">
-                      <div>
-                        <span className="font-medium text-emerald-700 dark:text-emerald-300">Location:</span>
-                        <span className="ml-2 text-emerald-800 dark:text-emerald-200">{plan1.location || 'Not specified'}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium text-emerald-700 dark:text-emerald-300">Date Saved:</span>
-                        <span className="ml-2 text-emerald-800 dark:text-emerald-200">{formatDate(plan1.date)}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium text-emerald-700 dark:text-emerald-300">Estimated Price:</span>
-                        <span className="ml-2 text-emerald-800 dark:text-emerald-200">{formatPrice(plan1.price)}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium text-emerald-700 dark:text-emerald-300">Number of Attractions:</span>
-                        <span className="ml-2 text-emerald-800 dark:text-emerald-200 font-semibold">{countAttractions(plan1.description)}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium text-emerald-700 dark:text-emerald-300">Activities:</span>
-                        <p className="mt-1 text-emerald-800 dark:text-emerald-200 bg-white/60 dark:bg-gray-700/60 p-3 rounded-md">
-                          {plan1.description || 'No activities provided'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Plan 2 */}
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-6 border border-blue-200 dark:border-blue-700/50">
-                    <div className="flex items-start justify-between mb-4">
-                      <h3 className="text-xl font-semibold text-blue-800 dark:text-blue-200">{plan2.title}</h3>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        plan2.status === 'favorite' 
-                          ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300' 
-                          : 'bg-blue-200 dark:bg-blue-800/30 text-blue-800 dark:text-blue-300'
-                      }`}>
-                        {plan2.status === 'favorite' ? '❤️ Favorite' : '💾 Saved'}
-                      </span>
-                    </div>
+                    // Sort plans to put special ones first
+                    const sortedPlans = [...selectedPlans].sort((a, b) => {
+                      const aIsCheapest = a.id === cheapestPlan.id;
+                      const aHasMostActivities = a.id === mostActivitiesPlan.id;
+                      const bIsCheapest = b.id === cheapestPlan.id;
+                      const bHasMostActivities = b.id === mostActivitiesPlan.id;
+                      
+                      // Both special attributes = highest priority
+                      const aSpecialCount = (aIsCheapest ? 1 : 0) + (aHasMostActivities ? 1 : 0);
+                      const bSpecialCount = (bIsCheapest ? 1 : 0) + (bHasMostActivities ? 1 : 0);
+                      
+                      if (aSpecialCount !== bSpecialCount) {
+                        return bSpecialCount - aSpecialCount; // Higher special count first
+                      }
+                      
+                      // If same special count, maintain original order
+                      return 0;
+                    });
                     
-                    <div className="space-y-3 text-sm">
-                      <div>
-                        <span className="font-medium text-blue-700 dark:text-blue-300">Location:</span>
-                        <span className="ml-2 text-blue-800 dark:text-blue-200">{plan2.location || 'Not specified'}</span>
+                    return sortedPlans.map((plan, index) => {
+                    const isCheapest = plan.id === cheapestPlan.id;
+                    const hasMostActivities = plan.id === mostActivitiesPlan.id;
+                    
+                    // Determine card styling based on special attributes
+                    let cardClasses = "";
+                    let headerClasses = "";
+                    let iconColor = "text-emerald-600 dark:text-emerald-400";
+                    let activitiesBackground = "bg-gradient-to-r from-white/50 to-emerald-50/50 dark:from-gray-700/30 dark:to-emerald-900/30";
+                    
+                    if (isCheapest && hasMostActivities) {
+                      // Both gold and silver - use a special gradient
+                      cardClasses = "bg-gradient-to-br from-yellow-50 via-gray-50 to-yellow-100 dark:from-yellow-900/20 dark:via-gray-800/20 dark:to-yellow-800/20 rounded-lg p-6 border-2 border-yellow-400 dark:border-yellow-600 shadow-lg";
+                      headerClasses = "text-yellow-800 dark:text-yellow-200";
+                      iconColor = "text-yellow-600 dark:text-yellow-400";
+                      activitiesBackground = "bg-gradient-to-r from-yellow-100/70 via-gray-100/60 to-yellow-100/70 dark:from-yellow-900/40 dark:via-gray-800/30 dark:to-yellow-900/40";
+                    } else if (isCheapest) {
+                      // Gold for cheapest
+                      cardClasses = "bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg p-6 border-2 border-yellow-400 dark:border-yellow-600 shadow-lg";
+                      headerClasses = "text-yellow-800 dark:text-yellow-200";
+                      iconColor = "text-yellow-600 dark:text-yellow-400";
+                      activitiesBackground = "bg-gradient-to-r from-yellow-100/70 to-yellow-50/80 dark:from-yellow-900/40 dark:to-yellow-800/30";
+                    } else if (hasMostActivities) {
+                      // Silver for most activities
+                      cardClasses = "bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/20 dark:to-gray-600/20 rounded-lg p-6 border-2 border-gray-400 dark:border-gray-500 shadow-lg";
+                      headerClasses = "text-gray-800 dark:text-gray-200";
+                      iconColor = "text-gray-600 dark:text-gray-400";
+                      activitiesBackground = "bg-gradient-to-r from-gray-100/70 to-gray-50/80 dark:from-gray-600/40 dark:to-gray-700/30";
+                    } else {
+                      // Default emerald styling
+                      cardClasses = "bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 rounded-lg p-6 border border-emerald-200 dark:border-emerald-700/50";
+                      headerClasses = "text-emerald-800 dark:text-emerald-200";
+                      iconColor = "text-emerald-600 dark:text-emerald-400";
+                      activitiesBackground = "bg-gradient-to-r from-emerald-100/70 to-emerald-50/80 dark:from-emerald-900/40 dark:to-emerald-800/30";
+                    }
+                    
+                    return (
+                    <div key={plan.id} className={cardClasses}>
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex flex-col">
+                          <h3 className={`text-xl font-semibold ${headerClasses}`}>{plan.title}</h3>
+                          {/* Special badges */}
+                          <div className="flex gap-2 mt-1">
+                            {isCheapest && (
+                              <span className="px-2 py-1 text-xs font-medium bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 rounded-full">
+                                🏆 Best Price
+                              </span>
+                            )}
+                            {hasMostActivities && (
+                              <span className="px-2 py-1 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full">
+                                🎯 Most Activities
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          plan.status === 'favorite' 
+                            ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300' 
+                            : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300'
+                        }`}>
+                          {plan.status === 'favorite' ? '♥ Favorite' : '📋 Saved'}
+                        </span>
                       </div>
-                      <div>
-                        <span className="font-medium text-blue-700 dark:text-blue-300">Date Saved:</span>
-                        <span className="ml-2 text-blue-800 dark:text-blue-200">{formatDate(plan2.date)}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium text-blue-700 dark:text-blue-300">Estimated Price:</span>
-                        <span className="ml-2 text-blue-800 dark:text-blue-200">{formatPrice(plan2.price)}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium text-blue-700 dark:text-blue-300">Number of Attractions:</span>
-                        <span className="ml-2 text-blue-800 dark:text-blue-200 font-semibold">{countAttractions(plan2.description)}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium text-blue-700 dark:text-blue-300">Activities:</span>
-                        <p className="mt-1 text-blue-800 dark:text-blue-200 bg-white/60 dark:bg-gray-700/60 p-3 rounded-md">
-                          {plan2.description || 'No activities provided'}
-                        </p>
+                      
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <span className={iconColor}>📅</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">{formatDate(plan.date)}</span>
+                        </div>
+                        
+                        {plan.location && (
+                          <div className="flex items-center gap-2">
+                            <span className={iconColor}>📍</span>
+                            <span className="text-sm text-gray-700 dark:text-gray-300">{plan.location}</span>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center gap-2">
+                          <span className={iconColor}>💰</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">{formatPrice(plan.price)}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <span className={iconColor}>🎯</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">{countAttractions(plan.description)} activities</span>
+                        </div>
+                        
+                        {plan.description && (
+                          <div className="mt-4">
+                            <h4 className={`text-sm font-medium ${headerClasses} mb-2`}>Activities:</h4>
+                            <div className={`text-sm text-gray-600 dark:text-gray-400 ${activitiesBackground} rounded-lg p-3 max-h-32 overflow-y-auto`}>
+                              {plan.description.split(',').map((activity, actIndex) => (
+                                <div key={actIndex} className="mb-1">• {activity.trim()}</div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
+                    );
+                  });
+                  })()}
                 </div>
 
                 {/* Comparison Summary */}
+                {/* Comparison Summary */}
                 <div className="mt-6 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
                   <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">📊 Comparison Summary</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Location Match:</span>
-                        <span className={`${plan1.location === plan2.location ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                          {plan1.location === plan2.location ? '✓ Same' : '⚡ Different'}
-                        </span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Total Plans:</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{selectedPlans.length}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Attractions Count:</span>
-                        <span className="text-purple-600 dark:text-purple-400 font-semibold">
-                          {countAttractions(plan1.description)} vs {countAttractions(plan2.description)}
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Favorites:</span>
+                        <span className="text-red-600 dark:text-red-400 font-semibold">
+                          {selectedPlans.filter(p => p.status === 'favorite').length}
                         </span>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Price Difference:</span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Price Range:</span>
                         <span className="text-purple-600 dark:text-purple-400 font-semibold">
-                          {(() => {
-                            const price1 = plan1.price || 0;
-                            const price2 = plan2.price || 0;
-                            const diff = Math.abs(price1 - price2);
-                            return diff > 0 ? `$${diff.toLocaleString()}` : 'Same';
-                          })()}
+                          ${Math.min(...selectedPlans.map(p => p.price || 0)).toLocaleString()} - ${Math.max(...selectedPlans.map(p => p.price || 0)).toLocaleString()}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">More Expensive:</span>
-                        <span className="text-gray-700 dark:text-gray-300">
-                          {(() => {
-                            const price1 = plan1.price || 0;
-                            const price2 = plan2.price || 0;
-                            if (price1 > price2) return plan1.title;
-                            if (price2 > price1) return plan2.title;
-                            return 'Same price';
-                          })()}
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Avg. Activities:</span>
+                        <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                          {Math.round(selectedPlans.reduce((sum, p) => sum + countAttractions(p.description), 0) / selectedPlans.length)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Most Recent:</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
+                          {selectedPlans.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.title.substring(0, 12)}...
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">More Attractions:</span>
-                        <span className="text-gray-700 dark:text-gray-300">
-                          {(() => {
-                            const count1 = countAttractions(plan1.description);
-                            const count2 = countAttractions(plan2.description);
-                            if (count1 > count2) return plan1.title;
-                            if (count2 > count1) return plan2.title;
-                            return 'Same number';
-                          })()}
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Budget Option:</span>
+                        <span className="text-green-600 dark:text-green-400 font-semibold text-xs">
+                          {selectedPlans.sort((a, b) => (a.price || 0) - (b.price || 0))[0]?.title.substring(0, 12)}...
                         </span>
                       </div>
                     </div>
@@ -676,12 +723,13 @@ export default function SavedPlans() {
                   </button>
                   <button 
                     onClick={() => {
-                      // Could integrate with planning system
-                      alert(`Starting to plan the higher priority option: ${plan1.status === 'favorite' ? plan1.title : plan2.title}`);
+                      // Find favorite plan or first plan
+                      const favoriteplan = selectedPlans.find(p => p.status === 'favorite') || selectedPlans[0];
+                      alert(`Starting to plan with: ${favoriteplan.title}`);
                     }}
                     className="px-4 py-2 rounded-md bg-emerald-600 dark:bg-emerald-700 text-white hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-colors"
                   >
-                    Start Planning Selected
+                    Start Planning
                   </button>
                 </div>
               </div>
