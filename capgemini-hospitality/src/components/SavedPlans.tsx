@@ -512,8 +512,22 @@ export default function SavedPlans() {
           <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 dark:bg-black/70">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-7xl w-full mx-4 max-h-[90vh] overflow-auto">
               {/* Header */}
-              <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-gray-700 dark:to-gray-600 border-b border-emerald-200 dark:border-gray-600 p-6 rounded-t-xl">
-                <h2 className="text-2xl font-bold mb-2 text-emerald-800 dark:text-emerald-200">Plan Comparison</h2>
+              <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-gray-700 dark:to-gray-600 border-b border-emerald-200 dark:border-gray-600 p-6 rounded-t-xl relative">
+                {/* Close button */}
+                <button
+                  onClick={() => {
+                    setShowComparisonModal(false);
+                    setSelectedPlansForComparison([]);
+                  }}
+                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-all duration-200 shadow-sm hover:shadow-md"
+                  aria-label="Close comparison modal"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                
+                <h2 className="text-2xl font-bold mb-2 text-emerald-800 dark:text-emerald-200 pr-12">Plan Comparison</h2>
                 <p className="text-emerald-700 dark:text-emerald-300">Comparing {selectedPlans.length} vacation plans</p>
               </div>
 
