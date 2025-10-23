@@ -31,6 +31,7 @@ export default function Dashboard({ user }: DashboardProps) {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(true); // Will be updated by notification modal
   // const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [hasExistingPlan, setHasExistingPlan] = useState(false);
   
@@ -225,12 +226,6 @@ export default function Dashboard({ user }: DashboardProps) {
               >
                 Help/FAQ
               </button>
-              <button
-                onClick={(e) => { e.preventDefault(); setShowNotificationModal(true); }}
-                className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer`}
-              >
-                Notifications
-              </button>
               <SavedPlansLink className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} text-sm font-medium transition-colors duration-200 hover:underline cursor-pointer`}>
                 Saved
               </SavedPlansLink>
@@ -251,6 +246,20 @@ export default function Dashboard({ user }: DashboardProps) {
                 title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               >
                 {isDarkMode ? '☀️' : '🌙'}
+              </button>
+              
+              {/* Notifications Bell */}
+              <button
+                onClick={(e) => { e.preventDefault(); setShowNotificationModal(true); }}
+                className={`relative ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'} px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'} hover:shadow-sm`}
+                aria-label="Notifications"
+                title="Notifications"
+              >
+                🔔
+                {/* Red dot for unread notifications */}
+                {hasUnreadNotifications && (
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse border-2 border-white"></span>
+                )}
               </button>
               
               <div className="relative group profile-dropdown">
@@ -313,8 +322,9 @@ export default function Dashboard({ user }: DashboardProps) {
             </button>
             <button
               onClick={(e) => { e.preventDefault(); setShowNotificationModal(true); setShowMobileMenu(false); }}
-              className={`block w-full text-left px-3 py-2 rounded-md text-sm font-medium ${isDarkMode ? 'text-gray-300 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'} transition-colors`}
+              className={`flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-sm font-medium ${isDarkMode ? 'text-gray-300 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'} transition-colors`}
             >
+              <span className="text-base">🔔</span>
               Notifications
             </button>
             <SavedPlansLink className={`block w-full text-left px-3 py-2 rounded-md text-sm font-medium ${isDarkMode ? 'text-gray-300 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'} transition-colors cursor-pointer`}>
@@ -721,7 +731,11 @@ export default function Dashboard({ user }: DashboardProps) {
       {/* Modals (kept inside components) */}
   <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
   <ContactModal isOpen={showContactModal} onClose={() => setShowContactModal(false)} />
-  <NotificationModal isOpen={showNotificationModal} onClose={() => setShowNotificationModal(false)} />
+  <NotificationModal 
+    isOpen={showNotificationModal} 
+    onClose={() => setShowNotificationModal(false)} 
+    onNotificationRead={setHasUnreadNotifications}
+  />
         </div>
       )}
     </>
