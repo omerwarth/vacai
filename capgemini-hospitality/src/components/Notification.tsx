@@ -318,7 +318,7 @@ export function NotificationModal({ isOpen, onClose, onNotificationRead }: Notif
                       <span className="text-2xl">🔕</span>
                     </div>
                     <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">No notifications</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-500">You're all caught up!</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500">You&apos;re all caught up!</p>
                   </div>
                 )}
               </div>

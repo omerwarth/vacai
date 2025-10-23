@@ -114,6 +114,7 @@ export default function Settings() {
     setSettings(loadedSettings);
     // Sync loaded colorblind filter with theme provider on initial load only
     setColorblindFilter(loadedSettings.colorblindFilter);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Remove colorblindFilter from dependencies to prevent loop
 
   const saveSettings = () => {

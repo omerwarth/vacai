@@ -503,11 +503,6 @@ export default function SavedPlans() {
           return attractions.length;
         };
 
-        // Function to get attractions list
-        const getAttractionsList = (description?: string) => {
-          if (!description) return [];
-          return description.split(',').map(item => item.trim()).filter(item => item.length > 0);
-        };
         
         return (
           <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 dark:bg-black/70">
