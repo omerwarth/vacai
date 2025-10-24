@@ -100,14 +100,29 @@ const handleError = async (response: Response, fallbackMsg: string) => {
 // API SERVICE 
 
 export const apiService = {
-  async signin(email: string, password: string) {
-    const res = await fetch(apiConfig.endpoints.signin, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    if (!res.ok) await handleError(res, "Failed to sign in");
-    return res.json();
+  async signin(accessToken: string) {
+    try {
+      const response = await fetch(apiConfig.endpoints.signin, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`, // 🔹 Include Auth0 token
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("❌ Signin failed:", errorData);
+        throw new Error(errorData.error || "Signin failed");
+      }
+
+      const data = await response.json();
+      console.log("✅ Signin success:", data);
+      return data;
+    } catch (error) {
+      console.error("⚠️ Signin error:", error);
+      throw error;
+    }
   },
 
   async signup(userData: { email: string; password: string; firstName?: string; lastName?: string }) {
