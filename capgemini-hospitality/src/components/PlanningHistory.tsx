@@ -71,16 +71,17 @@ export default function PlanningHistory() {
       const apiPlans: Plan[] = (response.itineraries || []).map((itinerary: Itinerary) => ({
         id: itinerary.id || '',
         title: itinerary.title || 'Untitled Plan',
-        date: itinerary.createdAt || new Date().toISOString(),
-        status: 'completed' as Plan['status'], // Itinerary doesn't have status, default to completed
+        date: itinerary.startDate || itinerary.createdAt || new Date().toISOString(),
+        status: (itinerary.status === 'completed' ? 'completed' : 
+                 itinerary.status === 'booked' ? 'in-progress' : 'draft') as Plan['status'],
         price: itinerary.budget || 0,
-        location: itinerary.location || '',
+        location: itinerary.destination || '',
       }));
 
       setPlans(apiPlans);
     } catch (err) {
       console.error('Failed to load itineraries:', err);
-      setError('Failed to load itineraries. Please try again.');
+      setError('Failed to load itineraries. The itinerary container may not exist in the database yet. Please check ITINERARY_API_SPEC.md');
       // Fallback to localStorage
       setPlans(loadPlans());
     } finally {
@@ -104,16 +105,28 @@ export default function PlanningHistory() {
       setIsSaving(true);
       setError(null);
 
+      const itineraryStatus: 'planning' | 'booked' | 'completed' | 'cancelled' = 
+        formStatus === 'completed' ? 'completed' : 
+        formStatus === 'in-progress' ? 'booked' : 'planning';
+
       const newItinerary = {
         userId: user.sub,
         profileId: user.sub, // You can update this to use selected profile
         title: formTitle.trim(),
-        location: formDestination.trim() || formLocation.trim(),
+        destination: formDestination.trim() || formLocation.trim(),
         startDate: formDate,
         endDate: formDate, // You can add separate end date field
+        status: itineraryStatus,
         budget: Number(formPrice) || 0,
-        activity: formActivities ? formActivities.split(',').map(a => a.trim()) : [],
-        notes: `Status: ${formStatus}`,
+        currency: 'USD',
+        flights: [],
+        activities: formActivities ? formActivities.split(',').map(a => ({
+          name: a.trim(),
+          description: '',
+        })) : [],
+        accommodations: [],
+        restaurants: [],
+        notes: '',
       };
 
       const response = await apiService.createItinerary(newItinerary);
@@ -145,7 +158,7 @@ export default function PlanningHistory() {
       setFormActivities('');
     } catch (err) {
       console.error('Failed to create itinerary:', err);
-      setError('Failed to create itinerary. Please try again.');
+      setError('Failed to create itinerary. The itinerary container may not exist in the database yet. Please check ITINERARY_API_SPEC.md');
     } finally {
       setIsSaving(false);
     }

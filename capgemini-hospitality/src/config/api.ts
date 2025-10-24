@@ -62,26 +62,67 @@ export interface TravelPreferences {
   updatedAt: string;
 }
 
+export interface Flight {
+  airline: string;
+  flightNumber: string;
+  departure: {
+    airport: string;
+    time: string;
+  };
+  arrival: {
+    airport: string;
+    time: string;
+  };
+  seat?: string;
+  confirmation?: string;
+  cost?: number;
+}
+
+export interface Activity {
+  name: string;
+  description?: string;
+  date?: string;
+  time?: string;
+  location?: string;
+  cost?: number;
+  bookingConfirmation?: string;
+}
+
+export interface Accommodation {
+  name: string;
+  type: string; // 'hotel', 'airbnb', 'resort', etc.
+  checkIn: string;
+  checkOut: string;
+  address?: string;
+  confirmation?: string;
+  cost?: number;
+}
+
+export interface Restaurant {
+  name: string;
+  cuisine?: string;
+  date?: string;
+  time?: string;
+  address?: string;
+  reservationConfirmation?: string;
+  cost?: number;
+}
+
 export interface Itinerary {
   id: string;
   userId: string;
-  profileId: string;
-  title?: string;
-  startDate?: string;
-  endDate?: string;
-  airplane?: string;
-  seat?: string;
-  car?: string;
-  entertainment?: string;
-  accommodation?: string;
-  hotel?: string;
-  location?: string;
-  money?: string;
-  currency?: string;
+  profileId?: string;
+  title: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  status?: 'planning' | 'booked' | 'completed' | 'cancelled';
   budget?: number;
-  activity?: string[];
-  food?: string[];
-  restaurants?: string[];
+  currency?: string;
+  flights?: Flight[];
+  activities?: Activity[];
+  accommodations?: Accommodation[];
+  restaurants?: Restaurant[];
   notes?: string;
   createdAt?: string;
   updatedAt?: string;
