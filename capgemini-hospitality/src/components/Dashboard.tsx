@@ -57,15 +57,15 @@ export default function Dashboard({ user }: DashboardProps) {
   ];
 
   // helper to pick section background images cyclically from vacationImages
-  const getSectionBg = (index: number) => {
-    const img = vacationImages[index % vacationImages.length];
-    return {
-      backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.12)), url(${img})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-    } as React.CSSProperties;
-  };
+  // const getSectionBg = (index: number) => {
+  //   const img = vacationImages[index % vacationImages.length];
+  //   return {
+  //     backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.12)), url(${img})`,
+  //     backgroundSize: 'cover',
+  //     backgroundPosition: 'center',
+  //     backgroundRepeat: 'no-repeat',
+  //   } as React.CSSProperties;
+  // };
 
   useEffect(() => {
     // Check if user has existing vacation plans

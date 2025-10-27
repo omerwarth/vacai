@@ -24,7 +24,7 @@ const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfi
   const [selectedTraveler, setSelectedTraveler] = useState<Traveler | null>(null);
   const [newProfileName, setNewProfileName] = useState('');
   const [newProfileRelationship, setNewProfileRelationship] = useState('');
-  const [usingLegacyApi, setUsingLegacyApi] = useState(false);
+  // const [usingLegacyApi, setUsingLegacyApi] = useState(false);
 
   const loadUserProfile = useCallback(async () => {
     if (!user?.sub) return;
@@ -39,13 +39,14 @@ const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfi
         setUserProfile(profile);
         setTravelers(profile.travelers || []);
         setError('');
-        setUsingLegacyApi(false);
+        // setUsingLegacyApi(false);
         return;
-      } catch (newApiError: any) {
-        console.log('New API error:', newApiError.message);
+      } catch (newApiError: unknown) {
+        const errorMessage = newApiError instanceof Error ? newApiError.message : 'Unknown error';
+        console.log('New API error:', errorMessage);
         
         // If profile doesn't exist (404), create it
-        if (newApiError.message?.includes('not found') || newApiError.message?.includes('404')) {
+        if (errorMessage.includes('not found') || errorMessage.includes('404')) {
           console.log('User profile not found, creating new profile...');
           try {
             const newProfile = await apiService.createUserProfile({
@@ -56,10 +57,11 @@ const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfi
             setUserProfile(newProfile);
             setTravelers(newProfile.travelers || []);
             setError('');
-            setUsingLegacyApi(false);
+            // setUsingLegacyApi(false);
             return;
-          } catch (createError: any) {
-            console.error('❌ Failed to create user profile:', createError.message);
+          } catch (createError: unknown) {
+            const createErrorMessage = createError instanceof Error ? createError.message : 'Unknown error';
+            console.error('❌ Failed to create user profile:', createErrorMessage);
             // If creation fails, try legacy API as fallback
           }
         }
@@ -68,7 +70,7 @@ const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfi
         
         // Fallback to legacy API
         try {
-          setUsingLegacyApi(true);
+          // setUsingLegacyApi(true);
           const response = await apiService.getTravelerProfiles(user.sub);
           
           // Convert legacy profiles to new structure for display
@@ -87,7 +89,7 @@ const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfi
           }
           
           // Map legacy profiles to new Traveler structure
-          const mappedTravelers: Traveler[] = legacyProfiles.map((profile: any) => ({
+          const mappedTravelers: Traveler[] = legacyProfiles.map((profile: Traveler) => ({
             id: profile.id,
             name: profile.name,
             relationship: profile.relationship,
