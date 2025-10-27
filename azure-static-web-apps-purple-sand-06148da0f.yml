@@ -36,6 +36,7 @@ jobs:
       output_location: "out"                       # frontend build output
     env:
       NODE_VERSION: '20.x'
+      NEXT_EXPORT: 'true'
       NEXT_PUBLIC_AUTH0_DOMAIN: $(NEXT_PUBLIC_AUTH0_DOMAIN)
       NEXT_PUBLIC_AUTH0_CLIENT_ID: $(NEXT_PUBLIC_AUTH0_CLIENT_ID)
       NEXT_PUBLIC_AUTH0_AUDIENCE: $(NEXT_PUBLIC_AUTH0_AUDIENCE)
