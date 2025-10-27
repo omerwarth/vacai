@@ -15,6 +15,7 @@ interface TravelerProfileManagerProps {
 
 const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfileSelect }) => {
   const { user } = useAuth0();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [travelers, setTravelers] = useState<Traveler[]>([]);
   const [loading, setLoading] = useState(true);

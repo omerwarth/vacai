@@ -4,40 +4,21 @@ import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { apiService } from "@/config/api";
 
 export default function SignInPage() {
-  const { loginWithRedirect, isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const { loginWithRedirect, isAuthenticated } = useAuth0();
   const router = useRouter();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  // 🔹 When user is authenticated, get token & call backend signin
+  // 🔹 When user is authenticated, redirect to dashboard
   useEffect(() => {
-    const handleSignIn = async () => {
-      try {
-        const accessToken = await getAccessTokenSilently({
-          authorizationParams: {
-            audience: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE,
-          },
-        });
-
-        // 🔹 Send token to backend signin endpoint
-        await apiService.signin(accessToken);
-
-        router.push('/dashboard');
-      } catch (err) {
-        console.error('Sign-in error:', err);
-        setError('Failed to sign in. Please try again.');
-      }
-    };
-
     if (isAuthenticated) {
-      handleSignIn();
+      router.push('/dashboard');
     }
-  }, [isAuthenticated, getAccessTokenSilently, router]);
+  }, [isAuthenticated, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

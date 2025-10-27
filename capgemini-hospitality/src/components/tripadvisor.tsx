@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 
 interface TripAdvisorResult {
   id: string;
@@ -177,9 +178,11 @@ export default function TripAdvisorSearch() {
                   className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow"
                 >
                   {result.photoUrl && (
-                    <img
+                    <Image
                       src={result.photoUrl}
                       alt={result.name}
+                      width={400}
+                      height={192}
                       className="w-full h-48 object-cover rounded-lg mb-3"
                     />
                   )}
