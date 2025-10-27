@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { apiService, TravelerProfile } from '@/config/api';
+import { apiService, UserProfile, Traveler } from '@/config/api';
 import OnboardingModal from './OnboardingModal';
 
 interface OnboardingData {
@@ -10,110 +10,158 @@ interface OnboardingData {
 }
 
 interface TravelerProfileManagerProps {
-  onProfileSelect?: (profile: TravelerProfile) => void;
+  onProfileSelect?: (profile: Traveler) => void;
 }
 
 const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfileSelect }) => {
   const { user } = useAuth0();
-  const [profiles, setProfiles] = useState<TravelerProfile[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [travelers, setTravelers] = useState<Traveler[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreateProfile, setShowCreateProfile] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [selectedProfile, setSelectedProfile] = useState<TravelerProfile | null>(null);
+  const [selectedTraveler, setSelectedTraveler] = useState<Traveler | null>(null);
   const [newProfileName, setNewProfileName] = useState('');
   const [newProfileRelationship, setNewProfileRelationship] = useState('');
+  const [usingLegacyApi, setUsingLegacyApi] = useState(false);
 
-  const createDefaultProfile = useCallback(async () => {
-    if (!user?.sub) return;
-    
-    try {
-      const defaultProfile = {
-        userId: user.sub,
-        name: user?.name || user?.email || 'My Profile',
-        relationship: 'self',
-        isDefault: true
-      };
-      
-      const response = await apiService.createTravelerProfile(defaultProfile);
-      setProfiles([response.profile]);
-    } catch (error) {
-      console.error('Failed to create default profile:', error);
-    }
-  }, [user]);
-
-  const loadTravelerProfiles = useCallback(async () => {
+  const loadUserProfile = useCallback(async () => {
     if (!user?.sub) return;
     
     try {
       setLoading(true);
-      const response = await apiService.getTravelerProfiles(user.sub);
-      setProfiles(response.profiles || []);
       
-      // If no profiles exist, create a default "self" profile
-      if (!response.profiles || response.profiles.length === 0) {
-        await createDefaultProfile();
+      // Try new API first
+      try {
+        const profile = await apiService.getUserProfile(user.sub);
+        console.log('✅ Successfully loaded user profile from new API');
+        setUserProfile(profile);
+        setTravelers(profile.travelers || []);
+        setError('');
+        setUsingLegacyApi(false);
+        return;
+      } catch (newApiError: any) {
+        console.log('New API error:', newApiError.message);
+        
+        // If profile doesn't exist (404), create it
+        if (newApiError.message?.includes('not found') || newApiError.message?.includes('404')) {
+          console.log('User profile not found, creating new profile...');
+          try {
+            const newProfile = await apiService.createUserProfile({
+              userId: user.sub,
+              email: user.email || ''
+            });
+            console.log('✅ Successfully created new user profile:', newProfile);
+            setUserProfile(newProfile);
+            setTravelers(newProfile.travelers || []);
+            setError('');
+            setUsingLegacyApi(false);
+            return;
+          } catch (createError: any) {
+            console.error('❌ Failed to create user profile:', createError.message);
+            // If creation fails, try legacy API as fallback
+          }
+        }
+        
+        console.log('Falling back to legacy API...');
+        
+        // Fallback to legacy API
+        try {
+          setUsingLegacyApi(true);
+          const response = await apiService.getTravelerProfiles(user.sub);
+          
+          // Convert legacy profiles to new structure for display
+          const legacyProfiles = response.profiles || [];
+          
+          if (legacyProfiles.length === 0) {
+            // Create default profile using legacy API
+            const defaultProfile = {
+              userId: user.sub,
+              name: user?.name || user?.email || 'My Profile',
+              relationship: 'self',
+              isDefault: true
+            };
+            const createResponse = await apiService.createTravelerProfile(defaultProfile);
+            legacyProfiles.push(createResponse.profile);
+          }
+          
+          // Map legacy profiles to new Traveler structure
+          const mappedTravelers: Traveler[] = legacyProfiles.map((profile: any) => ({
+            id: profile.id,
+            name: profile.name,
+            relationship: profile.relationship,
+            isDefault: profile.isDefault,
+            createdAt: profile.createdAt,
+            updatedAt: profile.updatedAt,
+            // Preferences will be loaded separately if needed
+          }));
+          
+          setTravelers(mappedTravelers);
+          setError('');
+          console.log('Using legacy API - some features may be limited');
+        } catch (legacyError) {
+          console.error('Both new and legacy APIs failed:', legacyError);
+          setError('Failed to load traveler profiles');
+        }
       }
-    } catch (error) {
-      console.error('Failed to load traveler profiles:', error);
-      setError('Failed to load traveler profiles');
     } finally {
       setLoading(false);
     }
-  }, [user?.sub, createDefaultProfile]);
+  }, [user]);
 
   useEffect(() => {
     if (user?.sub) {
-      loadTravelerProfiles();
+      loadUserProfile();
     }
-  }, [user, loadTravelerProfiles]);
+  }, [user, loadUserProfile]);
 
   const handleCreateProfile = async () => {
     if (!user?.sub || !newProfileName.trim()) return;
     
     try {
-      const profileData = {
-        userId: user.sub,
+      const updatedProfile = await apiService.addTraveler(user.sub, {
         name: newProfileName.trim(),
         relationship: newProfileRelationship || 'other',
         isDefault: false
-      };
+      });
       
-      const response = await apiService.createTravelerProfile(profileData);
-      setProfiles([...profiles, response.profile]);
+      setUserProfile(updatedProfile);
+      setTravelers(updatedProfile.travelers || []);
       setNewProfileName('');
       setNewProfileRelationship('');
       setShowCreateProfile(false);
     } catch (error) {
-      console.error('Failed to create profile:', error);
-      setError('Failed to create profile');
+      console.error('Failed to add traveler:', error);
+      setError('Failed to add traveler');
     }
   };
 
-  const handleDeleteProfile = async (profileId: string) => {
-    if (!confirm('Are you sure you want to delete this profile?')) return;
+  const handleDeleteProfile = async (travelerId: string) => {
+    if (!confirm('Are you sure you want to delete this traveler?')) return;
+    if (!user?.sub) return;
     
     try {
-      await apiService.deleteTravelerProfile(profileId);
-      setProfiles(profiles.filter(p => p.id !== profileId));
+      const updatedProfile = await apiService.deleteTraveler(user.sub, travelerId);
+      setUserProfile(updatedProfile);
+      setTravelers(updatedProfile.travelers || []);
     } catch (error) {
-      console.error('Failed to delete profile:', error);
-      setError('Failed to delete profile');
+      console.error('Failed to delete traveler:', error);
+      setError('Failed to delete traveler');
     }
   };
 
-  const handleSetPreferences = (profile: TravelerProfile) => {
-    setSelectedProfile(profile);
+  const handleSetPreferences = (traveler: Traveler) => {
+    setSelectedTraveler(traveler);
     setShowOnboarding(true);
   };
 
   const handleOnboardingComplete = async (data: OnboardingData) => {
-    if (!user?.sub || !selectedProfile) return;
+    if (!user?.sub || !selectedTraveler) return;
     
     try {
       // Convert onboarding data to travel preferences format
       const preferences = {
-        name: data.name as string,
         transportation: data.transportation as string,
         schedule_flexibility: data.schedule_flexibility as number,
         accommodation: data.accommodation as string,
@@ -124,12 +172,16 @@ const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfi
         trip_vibe: data.trip_vibe as string[]
       };
       
-      await apiService.saveUserPreferences(user.sub, selectedProfile.id, preferences);
-      setShowOnboarding(false);
-      setSelectedProfile(null);
+      const updatedProfile = await apiService.updateTravelerPreferences(
+        user.sub, 
+        selectedTraveler.id, 
+        preferences
+      );
       
-      // Optionally reload profiles to show updated status
-      loadTravelerProfiles();
+      setUserProfile(updatedProfile);
+      setTravelers(updatedProfile.travelers || []);
+      setShowOnboarding(false);
+      setSelectedTraveler(null);
     } catch (error) {
       console.error('Failed to save preferences:', error);
       setError('Failed to save preferences');
@@ -181,21 +233,26 @@ const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfi
 
       {/* Profile Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {profiles.map((profile) => (
-          <div key={profile.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+        {travelers.map((traveler) => (
+          <div key={traveler.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-3">
               <div>
-                <h3 className="font-semibold text-gray-900">{profile.name}</h3>
-                <p className="text-sm text-gray-600 capitalize">{profile.relationship}</p>
-                {profile.isDefault && (
+                <h3 className="font-semibold text-gray-900">{traveler.name}</h3>
+                <p className="text-sm text-gray-600 capitalize">{traveler.relationship}</p>
+                {traveler.isDefault && (
                   <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mt-1">
                     Default
                   </span>
                 )}
+                {traveler.preferences && (
+                  <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full mt-1 ml-1">
+                    Preferences Set
+                  </span>
+                )}
               </div>
-              {!profile.isDefault && (
+              {!traveler.isDefault && (
                 <button
-                  onClick={() => handleDeleteProfile(profile.id)}
+                  onClick={() => handleDeleteProfile(traveler.id)}
                   className="text-gray-400 hover:text-red-600 transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,15 +264,15 @@ const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfi
             
             <div className="space-y-2">
               <button
-                onClick={() => handleSetPreferences(profile)}
+                onClick={() => handleSetPreferences(traveler)}
                 className="w-full bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm hover:bg-gray-200 transition-colors"
               >
-                Set Travel Preferences
+                {traveler.preferences ? 'Update Preferences' : 'Set Travel Preferences'}
               </button>
               
               {onProfileSelect && (
                 <button
-                  onClick={() => onProfileSelect(profile)}
+                  onClick={() => onProfileSelect(traveler)}
                   className="w-full bg-blue-100 text-blue-700 px-3 py-2 rounded-lg text-sm hover:bg-blue-200 transition-colors"
                 >
                   Use for Planning
@@ -295,13 +352,13 @@ const TravelerProfileManager: React.FC<TravelerProfileManagerProps> = ({ onProfi
       )}
 
       {/* Onboarding Modal */}
-      {showOnboarding && selectedProfile && (
+      {showOnboarding && selectedTraveler && (
         <OnboardingModal
           isOpen={showOnboarding}
           onComplete={handleOnboardingComplete}
           onCancel={() => {
             setShowOnboarding(false);
-            setSelectedProfile(null);
+            setSelectedTraveler(null);
           }}
         />
       )}

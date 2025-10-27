@@ -71,16 +71,17 @@ export default function PlanningHistory() {
       const apiPlans: Plan[] = (response.itineraries || []).map((itinerary: Itinerary) => ({
         id: itinerary.id || '',
         title: itinerary.title || 'Untitled Plan',
-        date: itinerary.createdAt || new Date().toISOString(),
-        status: 'completed' as Plan['status'], // Itinerary doesn't have status, default to completed
+        date: itinerary.startDate || itinerary.createdAt || new Date().toISOString(),
+        status: (itinerary.status === 'completed' ? 'completed' : 
+                 itinerary.status === 'booked' ? 'in-progress' : 'draft') as Plan['status'],
         price: itinerary.budget || 0,
-        location: itinerary.location || '',
+        location: itinerary.destination || '',
       }));
 
       setPlans(apiPlans);
     } catch (err) {
       console.error('Failed to load itineraries:', err);
-      setError('Failed to load itineraries. Please try again.');
+      setError('Failed to load itineraries. The itinerary container may not exist in the database yet. Please check ITINERARY_API_SPEC.md');
       // Fallback to localStorage
       setPlans(loadPlans());
     } finally {
@@ -104,16 +105,28 @@ export default function PlanningHistory() {
       setIsSaving(true);
       setError(null);
 
+      const itineraryStatus: 'planning' | 'booked' | 'completed' | 'cancelled' = 
+        formStatus === 'completed' ? 'completed' : 
+        formStatus === 'in-progress' ? 'booked' : 'planning';
+
       const newItinerary = {
         userId: user.sub,
         profileId: user.sub, // You can update this to use selected profile
         title: formTitle.trim(),
-        location: formDestination.trim() || formLocation.trim(),
+        destination: formDestination.trim() || formLocation.trim(),
         startDate: formDate,
         endDate: formDate, // You can add separate end date field
+        status: itineraryStatus,
         budget: Number(formPrice) || 0,
-        activity: formActivities ? formActivities.split(',').map(a => a.trim()) : [],
-        notes: `Status: ${formStatus}`,
+        currency: 'USD',
+        flights: [],
+        activities: formActivities ? formActivities.split(',').map(a => ({
+          name: a.trim(),
+          description: '',
+        })) : [],
+        accommodations: [],
+        restaurants: [],
+        notes: '',
       };
 
       const response = await apiService.createItinerary(newItinerary);
@@ -145,7 +158,7 @@ export default function PlanningHistory() {
       setFormActivities('');
     } catch (err) {
       console.error('Failed to create itinerary:', err);
-      setError('Failed to create itinerary. Please try again.');
+      setError('Failed to create itinerary. The itinerary container may not exist in the database yet. Please check ITINERARY_API_SPEC.md');
     } finally {
       setIsSaving(false);
     }
@@ -206,26 +219,41 @@ export default function PlanningHistory() {
   });
 
   return (
-    <div className="max-w-6xl mx-auto py-12 px-4">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="max-w-7xl mx-auto py-12 px-4">
+      {/* Back Button */}
+      <button
+        onClick={() => window.location.assign('/')}
+        className="mb-6 inline-flex items-center gap-2 text-gray-600 hover:text-[#0070AC] transition-colors group"
+      >
+        <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        <span className="font-medium">Back to Home</span>
+      </button>
+
+      <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-sky-600 flex items-center justify-center text-white shadow-md">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 3h8l-1 4H9L8 3z" />
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#0070AC] to-[#005a8b] flex items-center justify-center text-white shadow-lg">
+            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
           </div>
           <div>
-            <h1 className="text-3xl font-extrabold text-sky-700">Planning History</h1>
-            <p className="text-sm text-sky-600 mt-1">Review your past and in-progress vacation plans.</p>
-            <p className="text-sm text-sky-700 font-semibold mt-2">Total Plans: {visiblePlans.length}</p>
+            <h1 className="text-4xl font-bold text-gray-900">Planning History</h1>
+            <p className="text-gray-600 mt-1">Review your past and in-progress vacation plans</p>
+            <p className="text-[#0070AC] font-semibold mt-2 flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Total Plans: {visiblePlans.length}
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value as 'all' | 'day' | 'week' | 'month' | 'year' | '2y' | '3y' | '4y' | '5y' | '10y')}
-            className="text-sm rounded-md border border-green-200 px-3 py-2 bg-green-50 text-green-700"
+            className="text-sm rounded-full border-2 border-gray-200 px-4 py-2 bg-white text-gray-700 hover:border-[#0070AC] transition-all focus:ring-2 focus:ring-[#0070AC] focus:border-transparent"
           >
             <option value="day">Day Ago</option>
             <option value="week">Week Ago</option>
@@ -241,7 +269,7 @@ export default function PlanningHistory() {
           <select
             value={priceThreshold === 'all' ? 'all' : String(priceThreshold)}
             onChange={(e) => setPriceThreshold(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-            className="ml-2 text-sm rounded-md border border-green-200 px-3 py-2 bg-green-50 text-green-700"
+            className="text-sm rounded-full border-2 border-gray-200 px-4 py-2 bg-white text-gray-700 hover:border-[#0070AC] transition-all focus:ring-2 focus:ring-[#0070AC] focus:border-transparent"
           >
             <option value="1">≥ $1</option>
             <option value="10">≥ $10</option>
@@ -249,39 +277,41 @@ export default function PlanningHistory() {
             <option value="500">≥ $500</option>
             <option value="1000">≥ $1,000</option>
             <option value="10000">≥ $10,000</option>
-            <option value="all">All</option>
+            <option value="all">All Prices</option>
           </select>
           <input
             placeholder="Search title or location"
             value={locationQuery}
             onChange={(e) => setLocationQuery(e.target.value)}
-            className="ml-2 text-sm rounded-md border border-green-200 px-3 py-2 bg-green-50 text-green-700"
+            className="text-sm rounded-full border-2 border-gray-200 px-4 py-2 bg-white text-gray-700 placeholder-gray-400 hover:border-[#0070AC] transition-all focus:ring-2 focus:ring-[#0070AC] focus:border-transparent"
           />
           <button
-            onClick={() => window.location.assign('/')}
-            className="text-sm px-3 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700"
-          >
-            Back to Home
-          </button>
-          <button
             onClick={() => setShowAddForm(true)}
-            className="text-sm px-3 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700"
+            className="text-sm px-5 py-2 rounded-full bg-[#0070AC] hover:bg-[#005a8b] text-white transition-all shadow-md hover:shadow-lg font-semibold"
           >
-            Create New Itinerary
+            + Create New
           </button>
           <button
             onClick={loadItineraries}
-            className="text-sm px-3 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-700"
+            className="text-sm p-2 rounded-full bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-[#0070AC] transition-all disabled:opacity-50"
             disabled={isLoading}
+            title="Refresh"
           >
-            {isLoading ? 'Loading...' : 'Refresh'}
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          {error}
+        <div className="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-xl shadow-sm">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {error}
+          </div>
         </div>
       )}
 
