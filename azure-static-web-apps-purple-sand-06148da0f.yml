@@ -33,7 +33,8 @@ jobs:
       azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN_PURPLE_SAND_06148DA0F)
       app_location: "capgemini-hospitality"        # frontend
       api_location: ""                             # no API - using external Functions App
-      output_location: ""                          # empty for Next.js hybrid apps (not static export)
+      output_location: "out"                       # static export output folder
+      skip_api_build: true
     env:
       NODE_VERSION: '20.x'
       NEXT_PUBLIC_AUTH0_DOMAIN: $(NEXT_PUBLIC_AUTH0_DOMAIN)

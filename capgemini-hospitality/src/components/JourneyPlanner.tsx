@@ -87,7 +87,8 @@ export default function JourneyPlanner({ onBack }: JourneyPlannerProps) {
   // in production thread id would be passed as a path parameter or something similar
   // thread id is unique identifier of a chat allowing resuming of prev chats
   const thread_id = "12345"
-  const API_URL = `http://127.0.0.1:8000/api/chat/${thread_id}`
+  const azureFunctionsUrl = process.env.NEXT_PUBLIC_AZURE_FUNCTIONS_URL || 'http://localhost:7071';
+  const API_URL = `${azureFunctionsUrl}/api/chat`
   const runtime = useLocalRuntime(
     {
       async run({ messages, abortSignal }) {
