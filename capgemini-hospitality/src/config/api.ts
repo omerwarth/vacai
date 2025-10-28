@@ -40,7 +40,6 @@ const getApiConfig = (): ApiConfig => {
 export const apiConfig = getApiConfig();
 
 // Modernized data model - consolidated into a single User Profile structure
-
 export interface TravelPreferences {
   transportation: string;
   schedule_flexibility: number;
