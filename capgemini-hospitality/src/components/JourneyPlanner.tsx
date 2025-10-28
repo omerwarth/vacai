@@ -86,6 +86,7 @@ export default function JourneyPlanner({ onBack }: JourneyPlannerProps) {
 
   // in production thread id would be passed as a path parameter or something similar
   // thread id is unique identifier of a chat allowing resuming of prev chats
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const thread_id = "12345"
   const azureFunctionsUrl = process.env.NEXT_PUBLIC_AZURE_FUNCTIONS_URL || 'http://localhost:7071';
   const API_URL = `${azureFunctionsUrl}/api/chat`

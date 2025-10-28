@@ -37,6 +37,7 @@ function loadPlans(): Plan[] {
 
 export default function PlanningHistory() {
   const { user } = useAuth0();
+  const router = useRouter();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -101,6 +102,13 @@ export default function PlanningHistory() {
       return;
     }
 
+    // Validate required fields
+    const destination = formDestination.trim() || formLocation.trim();
+    if (!destination) {
+      setError('Please provide a destination for your itinerary');
+      return;
+    }
+
     try {
       setIsSaving(true);
       setError(null);
@@ -109,13 +117,18 @@ export default function PlanningHistory() {
         formStatus === 'completed' ? 'completed' : 
         formStatus === 'in-progress' ? 'booked' : 'planning';
 
+      // Calculate end date (default to same day if not specified)
+      const startDate = new Date(formDate);
+      const endDate = new Date(formDate);
+      endDate.setDate(endDate.getDate() + 1); // Default to next day
+
       const newItinerary = {
         userId: user.sub,
         profileId: user.sub, // You can update this to use selected profile
         title: formTitle.trim(),
-        destination: formDestination.trim() || formLocation.trim(),
-        startDate: formDate,
-        endDate: formDate, // You can add separate end date field
+        destination: destination,
+        startDate: startDate.toISOString().split('T')[0], // YYYY-MM-DD format
+        endDate: endDate.toISOString().split('T')[0],
         status: itineraryStatus,
         budget: Number(formPrice) || 0,
         currency: 'USD',
@@ -357,7 +370,7 @@ export default function PlanningHistory() {
 
               <div className="mt-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <button onClick={() => { setActivePlan(plan); setShowDetailModal(true); }} className="text-sm px-3 py-2 rounded-md bg-gradient-to-r from-sky-600 to-sky-700 text-white hover:opacity-95">Open</button>
+                  <button onClick={() => router.push(`/explore/itinerary/${plan.id}`)} className="text-sm px-3 py-2 rounded-md bg-gradient-to-r from-sky-600 to-sky-700 text-white hover:opacity-95">Open</button>
                   <button onClick={() => handleDeleteItinerary(plan.id)} className="text-sm px-3 py-2 rounded-md bg-sky-600 text-white hover:bg-sky-700">Delete</button>
                 </div>
                 <div className="text-sm text-gray-400 flex items-center gap-3">

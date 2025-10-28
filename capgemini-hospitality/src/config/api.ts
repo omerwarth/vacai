@@ -14,12 +14,12 @@ interface ApiConfig {
 }
 
 const getApiConfig = (): ApiConfig => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isDevelopment = process.env.NODE_ENV === "development";
   const functionsAppUrl = process.env.NEXT_PUBLIC_AZURE_FUNCTIONS_URL;
 
-  const defaultBaseUrl = isDevelopment
-    ? "http://localhost:7071"
-    : "https://capgemini-hospitality-api-cfhkgge6a0h6ach6.eastus2-01.azurewebsites.net";
+  // Use production API for both development and production to avoid local setup issues
+  const defaultBaseUrl = "https://capgemini-hospitality-api-cfhkgge6a0h6ach6.eastus2-01.azurewebsites.net";
 
   const baseUrl = functionsAppUrl || defaultBaseUrl;
 

@@ -2,8 +2,7 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
-  // Static export for Azure Static Web Apps - API routes moved to Azure Functions
-  output: 'export',
+  // Removed output: 'export' to enable server-side rendering for dynamic routes
   trailingSlash: true,
   images: {
     unoptimized: true,

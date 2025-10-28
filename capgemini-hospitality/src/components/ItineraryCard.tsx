@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { JSX } from "react";
 import {
   Itinerary,
   ItinerarySegment,
@@ -8,119 +8,320 @@ import {
   ItinerarySegmentDetail,
   Badge,
 } from "@kiwicom/orbit-components";
-import * as Icons from "@kiwicom/orbit-components/lib/icons";
 
-// Orbit's badge types — defined inline, no interface needed
-type BadgeType = "info" | "success" | "warning" | "critical" | "neutral";
+import Airplane from "@kiwicom/orbit-components/lib/icons/Airplane";
+import InformationCircle from "@kiwicom/orbit-components/lib/icons/InformationCircle";
+import Seat from "@kiwicom/orbit-components/lib/icons/Seat";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import Entertainment from "@kiwicom/orbit-components/lib/icons/Entertainment";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import PowerPlug from "@kiwicom/orbit-components/lib/icons/PowerPlug";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import Wifi from "@kiwicom/orbit-components/lib/icons/Wifi";
+import HotelIcon from "@kiwicom/orbit-components/lib/icons/Accommodation";
+import Map from "@kiwicom/orbit-components/lib/icons/Map";
+import Calendar from "@kiwicom/orbit-components/lib/icons/Calendar";
+import Location from "@kiwicom/orbit-components/lib/icons/Location";
+import Money from "@kiwicom/orbit-components/lib/icons/Money";
 
-// Helper to safely render icons
-const getIconComponent = (iconName: unknown) => {
-  if (typeof iconName !== "string") return null;
-  const IconComponent = (Icons as Record<string, React.ElementType>)[iconName];
-  return IconComponent ? <IconComponent ariaLabel={iconName.toLowerCase()} /> : null;
+import type { Itinerary as ItineraryType, Flight, Activity, Accommodation as AccommodationType, Restaurant } from "@/config/api";
+
+type ItineraryCardProps = {
+  itinerary: ItineraryType;
 };
 
-// Type guard to verify objects
-const isRecord = (val: unknown): val is Record<string, unknown> =>
-  typeof val === "object" && val !== null;
+const ItineraryCard: React.FC<ItineraryCardProps> = ({ itinerary }) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
 
-const ItineraryCard: React.FC = () => {
-  const [itineraryData, setItineraryData] = useState<unknown>(null);
-  const [loading, setLoading] = useState(true);
+  const segments: JSX.Element[] = [];
 
-  useEffect(() => {
-    const fetchItinerary = async () => {
-      try {
-        const res = await fetch("/api/itinerary");
-        if (!res.ok) throw new Error("Failed to fetch itinerary");
-        const data: unknown = await res.json();
-        setItineraryData(data);
-      } catch (err) {
-        console.error("Error fetching itinerary:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Add flights
+  if (itinerary.flights && itinerary.flights.length > 0) {
+    itinerary.flights.forEach((flight: Flight, index: number) => {
+      segments.push(
+        <ItinerarySegment key={`flight-${index}`} spaceAfter="medium">
+          <ItinerarySegmentStop
+            city={flight.departure.airport}
+            station={`${flight.airline} ${flight.flightNumber}`}
+            date={formatDate(itinerary.startDate)}
+            time={flight.departure.time}
+          />
+          <ItinerarySegmentDetail
+            icon={<Airplane ariaLabel="airplane" />}
+            duration="Flight"
+            summary={
+              <Badge type="info">
+                {flight.airline}
+              </Badge>
+            }
+            content={[
+              {
+                title: "Flight Details",
+                items: [
+                  {
+                    icon: <Airplane ariaLabel="airplane" />,
+                    name: "Flight Number",
+                    value: flight.flightNumber,
+                  },
+                  {
+                    icon: <InformationCircle ariaLabel="information" />,
+                    name: "Airline",
+                    value: flight.airline,
+                  },
+                  ...(flight.seat ? [{
+                    icon: <Seat ariaLabel="seat" />,
+                    name: "Seat",
+                    value: flight.seat,
+                  }] : []),
+                  ...(flight.confirmation ? [{
+                    icon: <InformationCircle ariaLabel="confirmation" />,
+                    name: "Confirmation",
+                    value: flight.confirmation,
+                  }] : []),
+                ],
+              },
+            ]}
+          />
+          <ItinerarySegmentStop
+            city={flight.arrival.airport}
+            station="Arrival"
+            date={formatDate(itinerary.startDate)}
+            time={flight.arrival.time}
+          />
+        </ItinerarySegment>
+      );
+    });
+  }
 
-    fetchItinerary();
-  }, []);
+  // Add accommodations
+  if (itinerary.accommodations && itinerary.accommodations.length > 0) {
+    itinerary.accommodations.forEach((acc: AccommodationType, index: number) => {
+      segments.push(
+        <ItinerarySegment key={`accommodation-${index}`} spaceAfter="medium">
+          <ItinerarySegmentStop
+            city={itinerary.destination}
+            station={acc.name}
+            date={`${formatDate(acc.checkIn)} - ${formatDate(acc.checkOut)}`}
+            time="Check-in"
+          />
+          <ItinerarySegmentDetail
+            icon={<HotelIcon ariaLabel="hotel" />}
+            duration={`${Math.ceil((new Date(acc.checkOut).getTime() - new Date(acc.checkIn).getTime()) / (1000 * 60 * 60 * 24))} nights`}
+            summary={
+              <Badge type="success">
+                {acc.type}
+              </Badge>
+            }
+            content={[
+              {
+                title: "Hotel Information",
+                items: [
+                  {
+                    icon: <HotelIcon ariaLabel="hotel" />,
+                    name: "Hotel Name",
+                    value: acc.name,
+                  },
+                  ...(acc.address ? [{
+                    icon: <Location ariaLabel="location" />,
+                    name: "Address",
+                    value: acc.address,
+                  }] : []),
+                  ...(acc.confirmation ? [{
+                    icon: <InformationCircle ariaLabel="information" />,
+                    name: "Confirmation",
+                    value: acc.confirmation,
+                  }] : []),
+                ],
+              },
+            ]}
+          />
+          <ItinerarySegmentStop
+            city={itinerary.destination}
+            station="Check-out"
+            date={formatDate(acc.checkOut)}
+            time="Departure"
+          />
+        </ItinerarySegment>
+      );
+    });
+  }
 
-  if (loading) return <p>Loading itinerary...</p>;
-  if (!isRecord(itineraryData)) return <p>No itinerary found.</p>;
+  // Add activities
+  if (itinerary.activities && itinerary.activities.length > 0) {
+    itinerary.activities.forEach((activity: Activity, index: number) => {
+      segments.push(
+        <ItinerarySegment key={`activity-${index}`} spaceAfter="medium">
+          <ItinerarySegmentStop
+            city={itinerary.destination}
+            station={activity.name}
+            date={activity.date ? formatDate(activity.date) : formatDate(itinerary.startDate)}
+            time={activity.time || "All day"}
+          />
+          <ItinerarySegmentDetail
+            icon={<Map ariaLabel="activities" />}
+            duration="Activity"
+            summary={
+              <Badge type="info">
+                Activity
+              </Badge>
+            }
+            content={[
+              {
+                title: "Activity Details",
+                items: [
+                  {
+                    icon: <Map ariaLabel="activity" />,
+                    name: "Activity",
+                    value: activity.name,
+                  },
+                  ...(activity.location ? [{
+                    icon: <Location ariaLabel="location" />,
+                    name: "Location",
+                    value: activity.location,
+                  }] : []),
+                  ...(activity.cost ? [{
+                    icon: <Money ariaLabel="cost" />,
+                    name: "Cost",
+                    value: `$${activity.cost}`,
+                  }] : []),
+                  ...(activity.bookingConfirmation ? [{
+                    icon: <InformationCircle ariaLabel="confirmation" />,
+                    name: "Confirmation",
+                    value: activity.bookingConfirmation,
+                  }] : []),
+                ],
+              },
+            ]}
+          />
+          <ItinerarySegmentStop
+            city={itinerary.destination}
+            station="Activity Complete"
+            date={activity.date ? formatDate(activity.date) : formatDate(itinerary.startDate)}
+            time={activity.time ? "End time" : "Evening"}
+          />
+        </ItinerarySegment>
+      );
+    });
+  }
 
-  const segments = Array.isArray(itineraryData.segments)
-    ? itineraryData.segments
-    : [];
+  // Add restaurants
+  if (itinerary.restaurants && itinerary.restaurants.length > 0) {
+    itinerary.restaurants.forEach((restaurant: Restaurant, index: number) => {
+      segments.push(
+        <ItinerarySegment key={`restaurant-${index}`} spaceAfter="medium">
+          <ItinerarySegmentStop
+            city={itinerary.destination}
+            station={restaurant.name}
+            date={restaurant.date ? formatDate(restaurant.date) : formatDate(itinerary.startDate)}
+            time={restaurant.time || "Dinner"}
+          />
+          <ItinerarySegmentDetail
+            icon={<Money ariaLabel="restaurant" />}
+            duration="2 hours"
+            summary={
+              <Badge type="warning">
+                Dining
+              </Badge>
+            }
+            content={[
+              {
+                title: "Restaurant Details",
+                items: [
+                  {
+                    icon: <Money ariaLabel="restaurant" />,
+                    name: "Restaurant",
+                    value: restaurant.name,
+                  },
+                  ...(restaurant.cuisine ? [{
+                    icon: <InformationCircle ariaLabel="cuisine" />,
+                    name: "Cuisine",
+                    value: restaurant.cuisine,
+                  }] : []),
+                  ...(restaurant.address ? [{
+                    icon: <Location ariaLabel="location" />,
+                    name: "Address",
+                    value: restaurant.address,
+                  }] : []),
+                  ...(restaurant.reservationConfirmation ? [{
+                    icon: <InformationCircle ariaLabel="confirmation" />,
+                    name: "Confirmation",
+                    value: restaurant.reservationConfirmation,
+                  }] : []),
+                ],
+              },
+            ]}
+          />
+          <ItinerarySegmentStop
+            city={itinerary.destination}
+            station="End of meal"
+            date={restaurant.date ? formatDate(restaurant.date) : formatDate(itinerary.startDate)}
+            time="After dinner"
+          />
+        </ItinerarySegment>
+      );
+    });
+  }
+
+  // If no segments, show a basic itinerary overview
+  if (segments.length === 0) {
+    segments.push(
+      <ItinerarySegment key="overview" spaceAfter="medium">
+        <ItinerarySegmentStop
+          city={itinerary.destination}
+          station={itinerary.title}
+          date={`${formatDate(itinerary.startDate)} - ${formatDate(itinerary.endDate)}`}
+          time="Trip Overview"
+        />
+        <ItinerarySegmentDetail
+          icon={<Calendar ariaLabel="calendar" />}
+          duration={`${Math.ceil((new Date(itinerary.endDate).getTime() - new Date(itinerary.startDate).getTime()) / (1000 * 60 * 60 * 24))} days`}
+          summary={
+            <Badge type={itinerary.status === 'completed' ? 'success' : 'info'}>
+              {itinerary.status || 'Planning'}
+            </Badge>
+          }
+          content={[
+            {
+              title: "Trip Details",
+              items: [
+                {
+                  icon: <Calendar ariaLabel="dates" />,
+                  name: "Dates",
+                  value: `${itinerary.startDate} - ${itinerary.endDate}`,
+                },
+                ...(itinerary.budget ? [{
+                  icon: <Money ariaLabel="budget" />,
+                  name: "Budget",
+                  value: `${itinerary.currency || 'USD'} ${itinerary.budget}`,
+                }] : []),
+                ...(itinerary.notes ? [{
+                  icon: <InformationCircle ariaLabel="notes" />,
+                  name: "Notes",
+                  value: itinerary.notes,
+                }] : []),
+              ],
+            },
+          ]}
+        />
+        <ItinerarySegmentStop
+          city={itinerary.destination}
+          station="Trip Complete"
+          date={formatDate(itinerary.endDate)}
+          time="Departure"
+        />
+      </ItinerarySegment>
+    );
+  }
 
   return (
-    <Itinerary>
-      {segments.map((segment, i) => {
-        if (!isRecord(segment)) return null;
-
-        const stops = Array.isArray(segment.stops) ? segment.stops : [];
-        const detail = isRecord(segment.detail) ? segment.detail : null;
-
-        return (
-          <ItinerarySegment key={i} spaceAfter="medium">
-            {/* Stops */}
-            {stops.map((stop, j) => {
-              if (!isRecord(stop)) return null;
-              return (
-                <ItinerarySegmentStop
-                  key={j}
-                  city={String(stop.city ?? "")}
-                  station={String(stop.station ?? "")}
-                  date={String(stop.date ?? "")}
-                  time={String(stop.time ?? "")}
-                />
-              );
-            })}
-
-            {/* Detail */}
-            {detail && (
-              <ItinerarySegmentDetail
-                icon={getIconComponent(detail.icon)}
-                duration={typeof detail.duration === "string" ? detail.duration : ""}
-                summary={
-                  isRecord(detail.badge) ? (
-                    <Badge
-                      type={
-                        (typeof detail.badge.type === "string" &&
-                        ["info", "success", "warning", "critical", "neutral"].includes(
-                          detail.badge.type
-                        )
-                          ? (detail.badge.type as BadgeType)
-                          : "info")
-                      }
-                    >
-                      {String(detail.badge.text ?? "")}
-                    </Badge>
-                  ) : null
-                }
-                content={
-                  Array.isArray(detail.content)
-                    ? detail.content
-                        .filter(isRecord)
-                        .map((section) => ({
-                          title: String(section.title ?? ""),
-                          items: Array.isArray(section.items)
-                            ? section.items
-                                .filter(isRecord)
-                                .map((item) => ({
-                                  icon: getIconComponent(item.icon),
-                                  name: String(item.name ?? ""),
-                                  value: String(item.value ?? ""),
-                                }))
-                            : [],
-                        }))
-                    : []
-                }
-              />
-            )}
-          </ItinerarySegment>
-        );
-      })}
-    </Itinerary>
+    <div className="orbit-itinerary-wrapper">
+      <Itinerary>
+        {segments}
+      </Itinerary>
+    </div>
   );
 };
 
@@ -139,19 +340,7 @@ import {
   Badge,
 } from "@kiwicom/orbit-components";
 
-import Airplane from "@kiwicom/orbit-components/lib/icons/Airplane";
-import InformationCircle from "@kiwicom/orbit-components/lib/icons/InformationCircle";
-import Seat from "@kiwicom/orbit-components/lib/icons/Seat";
-import Entertainment from "@kiwicom/orbit-components/lib/icons/Entertainment";
-import PowerPlug from "@kiwicom/orbit-components/lib/icons/PowerPlug";
-import Wifi from "@kiwicom/orbit-components/lib/icons/Wifi";
-import Accommodation from "@kiwicom/orbit-components/lib/icons/Accommodation";
-import Map from "@kiwicom/orbit-components/lib/icons/Map";
-import Calendar from "@kiwicom/orbit-components/lib/icons/Calendar";
-import Location from "@kiwicom/orbit-components/lib/icons/Location";
-import Money from "@kiwicom/orbit-components/lib/icons/Money";
-
-const ItineraryCard: React.FC = () => {
+  const generateFlightSegments = (flights: Flight[]) => {
   return (
     <Itinerary>
       <ItinerarySegment spaceAfter="medium">
