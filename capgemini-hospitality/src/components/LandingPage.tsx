@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import ImageCarousel from './ImageCarousel';
 import { useAuth0 } from '@auth0/auth0-react';
 
 export default function LandingPage() {
@@ -182,29 +183,24 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Image gallery row like the sample */}
+              {/* Polished image carousel for hero */}
               <div className="mt-12">
-                <div className="gallery-wrapper overflow-x-auto py-6">
-                  <div className="flex gap-6 items-end px-4" style={{minWidth: '1200px'}}>
-                    <div className="gallery-card w-96 h-64 flex-shrink-0">
-                      <Image src="/pexels-asadphoto-457882.jpg" alt="relax" width={384} height={256} className="object-cover" />
-                    </div>
-                    <div className="gallery-card w-28 h-72 flex-shrink-0">
-                      <Image src="/pexels-freestockpro-1004584.jpg" alt="hike" width={112} height={288} className="object-cover" />
-                    </div>
-                    <div className="gallery-card w-80 h-64 flex-shrink-0">
-                      <Image src="/pexels-pixabay-208701.jpg" alt="boat" width={320} height={256} className="object-cover" />
-                    </div>
-                    <div className="gallery-card w-96 h-72 flex-shrink-0">
-                      <Image src="/pexels-recalmedia-60217.jpg" alt="kayak" width={384} height={288} className="object-cover" />
-                    </div>
-                    <div className="gallery-card w-36 h-64 flex-shrink-0">
-                      <Image src="/pexels-pixabay-38238.jpg" alt="sea" width={144} height={256} className="object-cover" />
-                    </div>
-                    <div className="gallery-card w-56 h-72 flex-shrink-0">
-                      <Image src="/pexels-thorsten-technoman-109353-338504.jpg" alt="summit" width={224} height={288} className="object-cover" />
-                    </div>
-                  </div>
+                <div className="mx-auto max-w-5xl">
+                  <ImageCarousel
+                    images={[
+                      '/pexels-asadphoto-457882.jpg',
+                      '/pexels-freestockpro-1004584.jpg',
+                      '/pexels-pixabay-208701.jpg',
+                      '/pexels-recalmedia-60217.jpg',
+                      '/pexels-pixabay-38238.jpg',
+                      '/pexels-thorsten-technoman-109353-338504.jpg',
+                    ]}
+                    autoPlay
+                    autoPlayInterval={3500}
+                    className="w-full h-72 rounded-3xl overflow-hidden shadow-2xl"
+                    showIndicators
+                    showNavigation
+                  />
                 </div>
               </div>
             </div>
