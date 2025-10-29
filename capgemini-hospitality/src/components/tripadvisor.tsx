@@ -52,10 +52,8 @@ export default function TripAdvisorSearch() {
     setResults(null);
 
     try {
-      const azureFunctionsUrl = process.env.NEXT_PUBLIC_AZURE_FUNCTIONS_URL || 'http://localhost:7071';
-      const response = await fetch(
-        `${azureFunctionsUrl}/api/tripadvisor?query=${encodeURIComponent(query)}&type=${type}`
-      );
+      // Call the local Next.js API route which proxies to Google Places.
+      const response = await fetch(`/api/tripadvisor?query=${encodeURIComponent(query)}&type=${type}`);
 
       const data = await response.json();
 
