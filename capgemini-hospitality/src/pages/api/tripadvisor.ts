@@ -19,7 +19,7 @@ type TripAdvisorResult = {
 
 type TripAdvisorResponse = {
   query: string;
-  location: { id: string; name: string; address?: any };
+  location: { id: string; name: string; address?: string };
   type: string;
   results: TripAdvisorResult[];
   count: number;
@@ -34,12 +34,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const type = (req.query.type as string) || 'hotels';
 
   if (!query) {
-    res.status(400).json({ error: 'query param is required' } as any);
+    res.status(400).json({ error: 'query param is required' });
     return;
   }
 
   if (!GOOGLE_KEY) {
-    res.status(500).json({ error: 'Google Maps API key not configured on server' } as any);
+    res.status(500).json({ error: 'Google Maps API key not configured on server' });
     return;
   }
 
@@ -53,27 +53,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const r = await fetch(url);
     if (!r.ok) {
       const text = await r.text();
-      res.status(502).json({ error: `Google Places error: ${r.status} ${text}` } as any);
+      res.status(502).json({ error: `Google Places error: ${r.status} ${text}` });
       return;
     }
 
     const data = await r.json();
-    const results = (data.results || []).slice(0, 12).map((p: any) => {
-      const photoRef = p.photos && p.photos[0] && p.photos[0].photo_reference;
-      const photoUrl = photoRef
+
+    const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+    const resultsArr: unknown[] = isRecord(data) && Array.isArray(data.results) ? (data.results as unknown[]) : [];
+
+    const results = resultsArr.slice(0, 12).map((p: unknown) => {
+      const pRec = isRecord(p) ? p : {};
+
+      const photoRef = Array.isArray(pRec.photos) && isRecord(pRec.photos[0]) ? (pRec.photos[0] as Record<string, unknown>).photo_reference : undefined;
+      const photoUrl = typeof photoRef === 'string'
         ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${encodeURIComponent(
             photoRef
           )}&key=${encodeURIComponent(GOOGLE_KEY)}`
         : undefined;
 
+      const types = Array.isArray(pRec.types) ? pRec.types.filter((t) => typeof t === 'string').join(', ') : undefined;
+
       const out: TripAdvisorResult = {
-        id: `google:${p.place_id}`,
-        name: p.name,
-        description: p.types ? p.types.join(', ') : undefined,
-        rating: p.rating !== undefined ? String(p.rating) : undefined,
-        numReviews: p.user_ratings_total !== undefined ? String(p.user_ratings_total) : undefined,
-        priceLevel: p.price_level !== undefined ? String(p.price_level) : undefined,
-        address: p.formatted_address,
+        id: `google:${String(pRec.place_id ?? '')}`,
+        name: typeof pRec.name === 'string' ? pRec.name : String(pRec.name ?? ''),
+        description: types,
+        rating: pRec.rating !== undefined ? String(pRec.rating) : undefined,
+        numReviews: pRec.user_ratings_total !== undefined ? String(pRec.user_ratings_total) : undefined,
+        priceLevel: pRec.price_level !== undefined ? String(pRec.price_level) : undefined,
+        address: typeof pRec.formatted_address === 'string' ? pRec.formatted_address : undefined,
         photoUrl,
       };
 
@@ -93,6 +101,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     console.error('TripAdvisor proxy error:', err);
     const message =
       err instanceof Error ? err.message : typeof err === 'string' ? err : JSON.stringify(err) || 'unknown error';
-    res.status(500).json({ error: message } as any);
+    res.status(500).json({ error: message });
   }
 }

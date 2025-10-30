@@ -35,26 +35,35 @@ async function fetchGooglePlaces(textQuery: string) {
 
   const r = await fetch(url);
   if (!r.ok) return [] as Place[];
-  const data = await r.json();
-  const results = (data.results || []).slice(0, 12).map((p: any) => {
-    const photoRef = p.photos && p.photos[0] && p.photos[0].photo_reference;
-    const photoUrl = photoRef
+  const dataRaw = await r.json();
+
+  // safe access helpers
+  const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+  const resultsArr: unknown[] = isRecord(dataRaw) && Array.isArray(dataRaw.results) ? (dataRaw.results as unknown[]) : [];
+
+  const results = resultsArr.slice(0, 12).map((p: unknown) => {
+    const pRec = isRecord(p) ? p : {};
+
+    const photoRef = Array.isArray(pRec.photos) && isRecord(pRec.photos[0]) ? (pRec.photos[0] as Record<string, unknown>).photo_reference : undefined;
+    const photoUrl = typeof photoRef === 'string'
       ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${encodeURIComponent(
           photoRef
         )}&key=${encodeURIComponent(GOOGLE_KEY)}`
       : undefined;
 
-    const lat = p.geometry?.location?.lat;
-    const lng = p.geometry?.location?.lng;
+    const geometry = isRecord(pRec.geometry) ? (pRec.geometry as Record<string, unknown>) : undefined;
+    const location = geometry && isRecord(geometry.location) ? (geometry.location as Record<string, unknown>) : undefined;
+    const lat = typeof location?.lat === 'number' ? location!.lat : (typeof location?.lat === 'string' ? Number(location!.lat) : undefined);
+    const lng = typeof location?.lng === 'number' ? location!.lng : (typeof location?.lng === 'string' ? Number(location!.lng) : undefined);
 
     const out: Place = {
-      id: `google:${p.place_id}`,
+      id: `google:${String(pRec.place_id ?? '')}`,
       source: 'google',
-      name: p.name,
-      address: p.formatted_address,
-      rating: p.rating !== undefined ? Number(p.rating) : undefined,
-      numReviews: p.user_ratings_total !== undefined ? Number(p.user_ratings_total) : undefined,
-      priceLevel: p.price_level !== undefined ? Number(p.price_level) : undefined,
+      name: typeof pRec.name === 'string' ? pRec.name : String(pRec.name ?? ''),
+      address: typeof pRec.formatted_address === 'string' ? pRec.formatted_address : undefined,
+      rating: typeof pRec.rating === 'number' ? pRec.rating : (typeof pRec.rating === 'string' ? Number(pRec.rating) : undefined),
+      numReviews: typeof pRec.user_ratings_total === 'number' ? pRec.user_ratings_total : (typeof pRec.user_ratings_total === 'string' ? Number(pRec.user_ratings_total) : undefined),
+      priceLevel: typeof pRec.price_level === 'number' ? pRec.price_level : (typeof pRec.price_level === 'string' ? Number(pRec.price_level) : undefined),
       lat,
       lng,
       photoUrl,
@@ -77,29 +86,31 @@ async function fetchTripAdvisorPlaces(textQuery: string) {
     { url: `https://tripadvisor16.p.rapidapi.com/locations/search?query=${encodeURIComponent(textQuery)}`, headers: { 'X-RapidAPI-Key': TA_KEY, 'X-RapidAPI-Host': 'tripadvisor16.p.rapidapi.com' } },
   ];
 
+  const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+
   for (const c of candidates) {
     try {
       const r = await fetch(c.url, { headers: c.headers });
       if (!r.ok) continue;
       const text = await r.text();
-      let json: any = null;
+      let json: unknown = null;
       try {
         json = JSON.parse(text);
-      } catch (e) {
+      } catch {
         // if non-json, skip
         continue;
       }
 
       // Attempt to find an array of items in the response
-      let items: any[] | undefined;
-      if (Array.isArray(json.results)) items = json.results;
-      else if (Array.isArray(json.data)) items = json.data;
-      else if (Array.isArray(json)) items = json;
-      else {
-        // try to find first array field
+      let items: unknown[] | undefined;
+      if (Array.isArray(json)) items = json as unknown[];
+      else if (isRecord(json) && Array.isArray(json.results)) items = (json.results as unknown[]);
+      else if (isRecord(json) && Array.isArray(json.data)) items = (json.data as unknown[]);
+      else if (isRecord(json)) {
         for (const k of Object.keys(json)) {
-          if (Array.isArray(json[k])) {
-            items = json[k];
+          const v = (json as Record<string, unknown>)[k];
+          if (Array.isArray(v)) {
+            items = v as unknown[];
             break;
           }
         }
@@ -108,25 +119,68 @@ async function fetchTripAdvisorPlaces(textQuery: string) {
       if (!items || items.length === 0) continue;
 
       // Map detected items to Place shape where possible
-      const mapped: Place[] = items.slice(0, 12).map((it: any, idx: number) => {
-        const id = it.location_id || it.place_id || it.id || `${c.url}#${idx}`;
-        const name = it.name || it.title || it.address_obj?.address_string || it.address || '';
-        const address = it.address || it.address_obj?.address_string || it.address_string || it.formatted_address || undefined;
-        const rating = it.rating !== undefined ? Number(it.rating) : (it.raw_ranking ? undefined : undefined);
-        const numReviews = it.num_reviews !== undefined ? Number(it.num_reviews) : it.num_reviews || undefined;
-        const lat = it.latitude || it.lat || it.location?.lat || (it.geo && it.geo.latitude) || undefined;
-        const lng = it.longitude || it.lng || it.location?.lng || (it.geo && it.geo.longitude) || undefined;
-        const photoUrl = it.photo?.images?.original?.url || it.photo?.images?.medium?.url || undefined;
+      const mapped: Place[] = items.slice(0, 12).map((it: unknown, idx: number) => {
+        const rec = isRecord(it) ? it : {};
+
+        const pickString = (...keys: string[]) => {
+          for (const k of keys) {
+            const v = rec[k];
+            if (typeof v === 'string') return v;
+            if (typeof v === 'number') return String(v);
+          }
+          return undefined as string | undefined;
+        };
+
+        const pickNumber = (...keys: string[]) => {
+          for (const k of keys) {
+            const v = rec[k];
+            if (typeof v === 'number') return v;
+            if (typeof v === 'string' && v.trim() !== '') {
+              const n = Number(v);
+              if (!Number.isNaN(n)) return n;
+            }
+          }
+          return undefined as number | undefined;
+        };
+
+        const getNested = (obj: unknown, path: string[]) => {
+          let cur: unknown = obj;
+          for (const p of path) {
+            if (!isRecord(cur)) return undefined;
+            cur = cur[p];
+          }
+          return cur;
+        };
+
+        const idVal = pickString('location_id', 'place_id', 'id') || `${c.url}#${idx}`;
+        const name = pickString('name', 'title') || (isRecord(rec.address_obj) && typeof rec.address_obj.address_string === 'string' ? rec.address_obj.address_string : undefined) || pickString('address') || '';
+        const address = pickString('address') || (isRecord(rec.address_obj) && typeof rec.address_obj.address_string === 'string' ? rec.address_obj.address_string : undefined) || pickString('address_string') || pickString('formatted_address');
+
+        const lat = pickNumber('latitude', 'lat') ?? (typeof getNested(rec.location, ['lat']) === 'number' ? (getNested(rec.location, ['lat']) as number) : (typeof getNested(rec.geo, ['latitude']) === 'number' ? (getNested(rec.geo, ['latitude']) as number) : undefined));
+        const lng = pickNumber('longitude', 'lng') ?? (typeof getNested(rec.location, ['lng']) === 'number' ? (getNested(rec.location, ['lng']) as number) : (typeof getNested(rec.geo, ['longitude']) === 'number' ? (getNested(rec.geo, ['longitude']) as number) : undefined));
+
+        // photo extraction (common patterns)
+        let photoUrl: string | undefined;
+        const photoRec = isRecord(rec.photo) ? rec.photo as Record<string, unknown> : undefined;
+        if (photoRec) {
+          const orig = getNested(photoRec, ['images', 'original', 'url']);
+          const med = getNested(photoRec, ['images', 'medium', 'url']);
+          if (typeof orig === 'string') photoUrl = orig;
+          else if (typeof med === 'string') photoUrl = med;
+        }
+
+        const rating = pickNumber('rating');
+        const numReviews = pickNumber('num_reviews');
 
         const out: Place = {
-          id: `ta:${id}`,
+          id: `ta:${String(idVal)}`,
           source: 'tripadvisor',
-          name: String(name || '').trim(),
-          address: address ? String(address).trim() : undefined,
+          name: String((name || '')).trim(),
+          address: typeof address === 'string' ? address.trim() : undefined,
           rating: rating !== undefined ? rating : undefined,
-          numReviews: numReviews !== undefined ? Number(numReviews) : undefined,
-          lat: lat !== undefined ? Number(lat) : undefined,
-          lng: lng !== undefined ? Number(lng) : undefined,
+          numReviews: numReviews !== undefined ? numReviews : undefined,
+          lat: lat !== undefined ? lat : undefined,
+          lng: lng !== undefined ? lng : undefined,
           photoUrl,
         };
 
@@ -134,7 +188,7 @@ async function fetchTripAdvisorPlaces(textQuery: string) {
       });
 
       return mapped;
-    } catch (err) {
+    } catch {
       // try next candidate
       continue;
     }
