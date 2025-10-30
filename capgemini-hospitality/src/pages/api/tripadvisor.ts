@@ -89,8 +89,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     };
 
     res.status(200).json(response);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('TripAdvisor proxy error:', err);
-    res.status(500).json({ error: err.message || 'unknown error' } as any);
+    const message =
+      err instanceof Error ? err.message : typeof err === 'string' ? err : JSON.stringify(err) || 'unknown error';
+    res.status(500).json({ error: message } as any);
   }
 }
