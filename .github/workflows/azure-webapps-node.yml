@@ -25,7 +25,7 @@ on:
 env:
   AZURE_WEBAPP_NAME: your-app-name    # set this to your application's name
   AZURE_WEBAPP_PACKAGE_PATH: './capgemini-hospitality'      # set this to the path to your web app project, defaults to the repository root
-  NODE_VERSION: '22.x'                # set this to the node version to use
+  NODE_VERSION: '20.x'                # set this to the node version to use
 
 permissions:
   contents: read
@@ -47,10 +47,11 @@ jobs:
       working-directory: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
       run: |
         npm ci --legacy-peer-deps
-        npm run build --if-present
+        NODE_OPTIONS="--max-old-space-size=4096" npm run build --if-present
         npm run test --if-present
       env:
         NODE_ENV: production
+        NODE_OPTIONS: "--max-old-space-size=4096"
         NEXT_PUBLIC_AUTH0_DOMAIN: ${{ secrets.NEXT_PUBLIC_AUTH0_DOMAIN }}
         NEXT_PUBLIC_AUTH0_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_AUTH0_CLIENT_ID }}
         NEXT_PUBLIC_AUTH0_AUDIENCE: ${{ secrets.NEXT_PUBLIC_AUTH0_AUDIENCE }}
