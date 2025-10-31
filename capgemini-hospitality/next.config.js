@@ -1,6 +1,5 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   // Enable server-side rendering for Azure App Service
   trailingSlash: true,
   
@@ -25,11 +24,8 @@ const nextConfig: NextConfig = {
   // Configure file tracing for deployment
   outputFileTracingRoot: process.cwd(),
   
-  // Experimental features
-  experimental: {
-    // Enable newer React features if needed
-    serverComponentsExternalPackages: ['@azure/cosmos'],
-  },
+  // Server external packages
+  serverExternalPackages: ['@azure/cosmos'],
 };
 
-export default nextConfig;
+module.exports = nextConfig;

@@ -7,7 +7,8 @@ import { apiService, Itinerary } from "@/config/api";
 import ItineraryCard from "../../../../components/ItineraryCard";
 
 export default function ItineraryDetailClient() {
-  const { id } = useParams();
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
   const { user } = useAuth0();
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [loading, setLoading] = useState(true);
