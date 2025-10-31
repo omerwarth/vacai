@@ -46,7 +46,21 @@ jobs:
     - name: npm install, build, and test
       working-directory: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
       run: |
-        npm ci --legacy-peer-deps
+        # Debug: Check if key files exist
+        ls -la src/config/ || echo "No config directory"
+        ls -la src/components/ || echo "No components directory" 
+        ls -la src/components/ui/ || echo "No ui directory"
+        
+        # Install dependencies
+        npm install --legacy-peer-deps
+        
+        # Explicitly install autoprefixer if missing
+        npm install autoprefixer postcss tailwindcss --save-dev || echo "Failed to install CSS dependencies"
+        
+        # Verify autoprefixer is installed
+        npm list autoprefixer || echo "Autoprefixer not found in dependencies"
+        
+        # Build with increased memory
         NODE_OPTIONS="--max-old-space-size=4096" npm run build --if-present
         npm run test --if-present
       env:
