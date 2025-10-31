@@ -410,27 +410,6 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComplete, o
                 </div>
               )
             )}
-
-            {/* Custom image grid for single-select accommodation */}
-            {currentQuestion.type === 'select' && currentQuestion.id === 'accommodation' && (
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { id: 'Hotel', title: 'Hotel', src: '/images/preferences/hotel.jpg' },
-                  { id: 'Vacation Rental', title: 'Vacation Rental', src: '/images/preferences/vacationrental.jpg' },
-                  { id: 'Hostel', title: 'Hostel', src: '/images/preferences/hostel.jpg' },
-                  { id: 'Camping', title: 'Camping', src: '/images/preferences/camping.jpg' }
-                ].map(opt => (
-                  <ImageChoiceCard
-                    key={opt.id}
-                    id={opt.id}
-                    title={opt.title}
-                    src={opt.src}
-                    selected={(formData[currentQuestion.id] as string) === opt.id}
-                    onSelect={(id) => handleInputChange(id)}
-                  />
-                ))}
-              </div>
-            )}
           </div>
         </div>
 
