@@ -59,7 +59,7 @@ jobs:
 
     - name: Zip artifact for deployment
       working-directory: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-      run: zip -r ../release.zip .next package*.json public node_modules .deployment startup.txt
+      run: zip -r ../release.zip .next package*.json public src server.js web.config startup.txt
 
     - name: Upload artifact for deployment job
       uses: actions/upload-artifact@v4
